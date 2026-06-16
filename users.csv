@@ -1,6 +1,6 @@
 role,username,password,display_name
-RMM,Thudson,HF_HPA2026,Travis Hudson
-RMM,Jtuttle,HF_HPA2026,Jason Tuttle
-RMM,Kadams,HF_HPA2026,Kelly Adams
-RMM,Lellis,HPA2026,Lucas Ellis
-RMM,Jbernau,HPA2026,Joe Bernau
+Director,Thudson,HF_HPA2026,Travis Hudson
+RMM2,Jtuttle,HF_HPA2026,Jason Tuttle
+RMM1,Kadams,HF_HPA2026,Kelly Adams
+HPA,Lellis,HPA2026,Lucas Ellis
+HPA,Jbernau,HPA2026,Joe Bernau
