@@ -131,7 +131,7 @@
       border-bottom:1px solid var(--line); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     }
     .dir-label{ font-size:.82rem; font-weight:700; color:var(--heading); letter-spacing:.02em; }
-    .dir-info{ display:flex; align-items:center; gap:6px; min-width:0; flex-wrap:nowrap; overflow:hidden; }
+    .dir-info{ display:flex; align-items:center; gap:6px; min-width:0; flex:0 1 auto; flex-wrap:nowrap; overflow:hidden; }
     .di-chip{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font-size:.78rem;
       color:var(--text); background:rgba(255,255,255,.06); border:1px solid var(--line);
       padding:4px 8px; border-radius:var(--radius-pill); }
@@ -593,18 +593,21 @@
     .section-opts .section-opts-menu{ left:0; right:auto; }
 
     /* Store search bar on the map */
-    .store-search-wrap{ position:absolute; top:46px; left:12px; right:12px; z-index:590; max-width:340px; }
+    /* Store search now lives inside the directory bar, beside the Options dropdown */
+    .dir-right{ display:flex; align-items:center; gap:8px; flex:0 1 auto; min-width:0; }
+    .store-search-wrap{ position:relative; flex:1 1 auto; min-width:0; max-width:240px; }
     .store-search-box{ position:relative; }
     .store-search-box input{
-      width:100%; padding:9px 12px 9px 34px; font-size:14px;
+      width:100%; padding:7px 10px 7px 30px; font-size:13px;
       background:rgba(10,16,32,.92); color:var(--heading);
       border:1px solid var(--accent-line); border-radius:var(--radius-pill);
       backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     }
-    .store-search-box .ico{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--accent); pointer-events:none; font-size:.9rem; }
+    .store-search-box .ico{ position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--accent); pointer-events:none; font-size:.85rem; }
     .store-search-results{
-      margin-top:6px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm);
-      box-shadow:var(--shadow-lg); max-height:240px; overflow-y:auto; display:none;
+      position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:700;
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm);
+      box-shadow:var(--shadow-lg); max-height:240px; overflow-y:auto; display:none; min-width:220px;
     }
     .store-search-results.show{ display:block; }
     .store-search-results button{
@@ -614,7 +617,11 @@
     .store-search-results button:last-child{ border-bottom:none; }
     .store-search-results button:hover{ background:rgba(61,169,252,.12); color:var(--heading); }
     .store-search-results button b{ color:var(--heading); }
-    @media(max-width:520px){ .store-search-wrap{ max-width:none; } }
+    @media(max-width:600px){
+      .dir-info .di-chip[title="Stores complete"]{ display:none; }
+      .store-search-wrap{ max-width:130px; }
+      .store-search-box input{ font-size:12px; }
+    }
 
     /* Status badge floating above a user's sprite (item 1) */
     .sprite-status-badge{
@@ -767,28 +774,30 @@
                   <span class="di-chip clickable" id="weatherChip" title="Tap for the forecast"><span id="weatherGlyph">🌤</span> <b id="homeTemp">…</b></span>
                   <span class="di-chip" title="Stores complete">✅ <b id="summaryDone">—</b></span>
                 </div>
-                <div class="dir-menu-wrap">
-                  <button id="dirToggle" class="dir-btn" type="button" aria-haspopup="true" aria-expanded="false">
-                    <span id="dirCurrent">☰ Options</span>
-                    <span class="dir-caret">▾</span>
-                  </button>
-                  <div id="dirMenu" class="dir-menu" role="menu">
-                    <button class="dir-item active" data-view="map" type="button" role="menuitem">🗺 Map</button>
-                    <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
-                    <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
-                    <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
-                    <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+                <div class="dir-right">
+                  <div class="store-search-wrap">
+                    <div class="store-search-box">
+                      <span class="ico">🔍</span>
+                      <input id="storeSearch" type="search" placeholder="Search store…" autocomplete="off" />
+                    </div>
+                    <div id="storeSearchResults" class="store-search-results"></div>
+                  </div>
+                  <div class="dir-menu-wrap">
+                    <button id="dirToggle" class="dir-btn" type="button" aria-haspopup="true" aria-expanded="false">
+                      <span id="dirCurrent">☰ Options</span>
+                      <span class="dir-caret">▾</span>
+                    </button>
+                    <div id="dirMenu" class="dir-menu" role="menu">
+                      <button class="dir-item active" data-view="map" type="button" role="menuitem">🗺 Map</button>
+                      <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
+                      <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
+                      <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
+                      <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+                    </div>
                   </div>
                 </div>
               </div>
               <div id="map"></div>
-              <div class="store-search-wrap">
-                <div class="store-search-box">
-                  <span class="ico">🔍</span>
-                  <input id="storeSearch" type="search" placeholder="Search store # or name…" autocomplete="off" />
-                </div>
-                <div id="storeSearchResults" class="store-search-results"></div>
-              </div>
               <button id="locBtn" class="loc-btn" type="button">📍 Share my location</button>
               <button id="statusBtn" class="status-btn" type="button">🟢 Set status</button>
               <!-- hidden fields kept so existing JS that targets them still works -->
