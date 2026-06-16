@@ -1,0 +1,7 @@
+role,username,password,display_name,region,district
+VP,jdoe,CHANGEME,Jane Doe,,
+Director,jbernau,HPA2026,Joe Bernau,,
+RMM1,thudson,HF_HPA2026,Travis Hudson,"3,4",
+RMM2,jtuttle,HF_HPA2026,Jason Tuttle,"1,2",
+DM,kadams,HF_HPA2026,Kelly Adams,,3
+HPA,lellis,HPA2026,Lucas Ellis,,
