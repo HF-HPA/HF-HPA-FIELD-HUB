@@ -587,6 +587,99 @@
     ::selection{ background:var(--accent-soft); color:var(--heading); }
 
     @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+    /* ===== Batch 1 additions ===== */
+    /* Section-top Options menu opens from the left (under the button) */
+    .section-opts .section-opts-menu{ left:0; right:auto; }
+
+    /* Store search bar on the map */
+    .store-search-wrap{ position:absolute; top:46px; left:12px; right:12px; z-index:590; max-width:340px; }
+    .store-search-box{ position:relative; }
+    .store-search-box input{
+      width:100%; padding:9px 12px 9px 34px; font-size:14px;
+      background:rgba(10,16,32,.92); color:var(--heading);
+      border:1px solid var(--accent-line); border-radius:var(--radius-pill);
+      backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    }
+    .store-search-box .ico{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--accent); pointer-events:none; font-size:.9rem; }
+    .store-search-results{
+      margin-top:6px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm);
+      box-shadow:var(--shadow-lg); max-height:240px; overflow-y:auto; display:none;
+    }
+    .store-search-results.show{ display:block; }
+    .store-search-results button{
+      display:block; width:100%; text-align:left; padding:9px 12px; border:none; background:transparent;
+      color:var(--text); cursor:pointer; font-family:inherit; font-size:.85rem; border-bottom:1px solid var(--line-soft);
+    }
+    .store-search-results button:last-child{ border-bottom:none; }
+    .store-search-results button:hover{ background:rgba(61,169,252,.12); color:var(--heading); }
+    .store-search-results button b{ color:var(--heading); }
+    @media(max-width:520px){ .store-search-wrap{ max-width:none; } }
+
+    /* Status badge floating above a user's sprite (item 1) */
+    .sprite-status-badge{
+      position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+      white-space:nowrap; font-size:11px; line-height:1; padding:3px 7px; border-radius:999px;
+      background:rgba(10,16,32,.92); color:#eef3ff; border:1px solid rgba(255,255,255,.35);
+      box-shadow:0 2px 6px rgba(0,0,0,.5); pointer-events:none;
+    }
+
+    /* Extended weather forecast modal */
+    .wx-days{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+    .wx-day{ display:flex; align-items:center; gap:12px; padding:10px 12px;
+      background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); }
+    .wx-day .wx-emoji{ font-size:1.5rem; flex:0 0 auto; width:34px; text-align:center; }
+    .wx-day .wx-name{ flex:1; min-width:0; }
+    .wx-day .wx-name .d{ font-weight:700; color:var(--heading); font-size:.9rem; }
+    .wx-day .wx-name .c{ font-size:.76rem; color:var(--muted); }
+    .wx-day .wx-temp{ flex:0 0 auto; text-align:right; font-size:.86rem; }
+    .wx-day .wx-temp .hi{ color:var(--heading); font-weight:700; }
+    .wx-day .wx-temp .lo{ color:var(--muted); }
+    .di-chip.clickable{ cursor:pointer; }
+    .di-chip.clickable:hover{ border-color:var(--accent-line); }
+
+    /* ===== Batch 2: team banners (items 5 & 6) ===== */
+    #bannerStack{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+    #bannerStack:empty{ display:none; }
+    .team-banner{
+      display:flex; align-items:flex-start; gap:12px; padding:12px 14px;
+      border-radius:var(--radius); border:1px solid var(--accent-line);
+      background:linear-gradient(135deg, rgba(61,169,252,.18), rgba(94,224,208,.12));
+      box-shadow:var(--shadow); animation:rise .3s ease both;
+    }
+    .team-banner.announce{
+      border-color:rgba(245,185,74,.5);
+      background:linear-gradient(135deg, rgba(245,185,74,.18), rgba(124,92,255,.12));
+    }
+    .team-banner .tb-icon{ flex:0 0 auto; font-size:1.3rem; line-height:1.3; }
+    .team-banner .tb-body{ flex:1; min-width:0; }
+    .team-banner .tb-title{ font-weight:800; color:var(--heading); font-size:.92rem; }
+    .team-banner .tb-text{ color:var(--text); font-size:.86rem; margin-top:2px; white-space:pre-wrap; word-wrap:break-word; }
+    .team-banner .tb-meta{ color:var(--faint); font-size:.7rem; margin-top:4px; }
+    .team-banner .tb-del{
+      flex:0 0 auto; border:none; background:rgba(2,7,4,.25); color:var(--heading); cursor:pointer;
+      width:26px; height:26px; border-radius:50%; font-size:1rem; line-height:1; transition:background var(--t);
+    }
+    .team-banner .tb-del:hover{ background:var(--bad); color:#fff; }
+
+    /* In-app manager-change toast (item 4 in-app portion) */
+    #toastStack{ position:fixed; left:50%; bottom:calc(84px + var(--safe-bottom)); transform:translateX(-50%);
+      z-index:9700; display:flex; flex-direction:column; gap:8px; width:min(420px, calc(100vw - 24px)); pointer-events:none; }
+    .toast{
+      pointer-events:auto; background:var(--panel-raised); color:var(--text); border:1px solid var(--accent-line);
+      border-radius:var(--radius-sm); padding:11px 14px; font-size:.85rem; box-shadow:var(--shadow-lg);
+      display:flex; align-items:center; gap:10px; animation:rise .25s ease both;
+    }
+    .toast .ti{ font-size:1.1rem; flex:0 0 auto; }
+    .toast b{ color:var(--heading); }
+
+    /* Feeling composer chips (item 11) */
+    .feeling-row{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px; }
+    .feeling-row button{ font-size:1.2rem; width:40px; height:40px; border-radius:10px; border:1px solid var(--line);
+      background:var(--panel-2); cursor:pointer; transition:border-color var(--t), transform var(--t); }
+    .feeling-row button:hover{ transform:translateY(-1px); border-color:var(--accent-line); }
+    .feeling-row button.sel{ border-color:#fff; box-shadow:0 0 0 2px var(--accent); }
+    .feed-item.feeling{ background:linear-gradient(135deg, rgba(94,224,208,.12), rgba(61,169,252,.10)); border-color:var(--accent-line); }
   </style>
 </head>
 <body>
@@ -643,11 +736,15 @@
         <div class="user-chip">
           <span class="dot"></span>
           <span id="userName">User</span>
+          <button id="btnPostBanner" type="button" title="Post a team-wide notice" class="hidden">📢</button>
           <button id="editSpriteBtn" type="button" title="Edit your map sprite">🎨</button>
           <button id="mgrBtn" type="button" title="Manager tools" class="hidden">🛡</button>
           <button id="logoutBtn" type="button">Sign out</button>
         </div>
       </header>
+
+      <!-- Team-wide banners (manager notices + announcements) — items 5 & 6 -->
+      <div id="bannerStack"></div>
 
       <!-- ===== MAP (HOME) ===== -->
       <section id="view-map">
@@ -657,7 +754,8 @@
               <div id="connStatus" class="conn off" style="cursor:pointer;" title="Tap to run a connection check"><span class="dot"></span><span class="label">Connecting…</span></div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <div id="weekBadge" class="conn"><span class="label"></span></div>
-                <button id="btnStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">🏬 Edit / Add store</button>
+                <button id="btnAddStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">🏬 Add store</button>
+                <button id="btnEditStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">✎ Edit store</button>
               </div>
             </div>
 
@@ -666,12 +764,12 @@
               <div class="dir-bar">
                 <div class="dir-info">
                   <span class="di-chip" title="Local time">🕐 <b id="homeTime">—</b></span>
-                  <span class="di-chip" title="Weather"><span id="weatherGlyph">🌤</span> <b id="homeTemp">…</b></span>
+                  <span class="di-chip clickable" id="weatherChip" title="Tap for the forecast"><span id="weatherGlyph">🌤</span> <b id="homeTemp">…</b></span>
                   <span class="di-chip" title="Stores complete">✅ <b id="summaryDone">—</b></span>
                 </div>
                 <div class="dir-menu-wrap">
                   <button id="dirToggle" class="dir-btn" type="button" aria-haspopup="true" aria-expanded="false">
-                    <span id="dirCurrent">🗺 Map</span>
+                    <span id="dirCurrent">☰ Options</span>
                     <span class="dir-caret">▾</span>
                   </button>
                   <div id="dirMenu" class="dir-menu" role="menu">
@@ -684,6 +782,13 @@
                 </div>
               </div>
               <div id="map"></div>
+              <div class="store-search-wrap">
+                <div class="store-search-box">
+                  <span class="ico">🔍</span>
+                  <input id="storeSearch" type="search" placeholder="Search store # or name…" autocomplete="off" />
+                </div>
+                <div id="storeSearchResults" class="store-search-results"></div>
+              </div>
               <button id="locBtn" class="loc-btn" type="button">📍 Share my location</button>
               <button id="statusBtn" class="status-btn" type="button">🟢 Set status</button>
               <!-- hidden fields kept so existing JS that targets them still works -->
@@ -735,14 +840,40 @@
 
       <!-- ===== MY DAY ===== -->
       <section id="view-today" class="hidden">
-        <div class="section-top"><button class="btn-back" data-view="map" type="button">← Back to map</button></div>
+        <div class="section-top">
+          <div class="dir-menu-wrap section-opts">
+            <button class="dir-btn section-opts-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              <span>☰ Options</span><span class="dir-caret">▾</span>
+            </button>
+            <div class="dir-menu section-opts-menu" role="menu">
+              <button class="dir-item" data-view="map" type="button" role="menuitem">🗺 Map</button>
+              <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
+              <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
+              <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
+              <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+            </div>
+          </div>
+        </div>
         <div class="head"><h2>My Day</h2><p>Your assigned stores, nearest first. Tap to work the checklist and attach photos.</p></div>
         <div id="todayList"><div class="hub-empty">Loading your stores…</div></div>
       </section>
 
       <!-- ===== PRODUCT INFO ===== -->
       <section id="view-products" class="hidden">
-        <div class="section-top"><button class="btn-back" data-view="map" type="button">← Back to map</button></div>
+        <div class="section-top">
+          <div class="dir-menu-wrap section-opts">
+            <button class="dir-btn section-opts-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              <span>☰ Options</span><span class="dir-caret">▾</span>
+            </button>
+            <div class="dir-menu section-opts-menu" role="menu">
+              <button class="dir-item" data-view="map" type="button" role="menuitem">🗺 Map</button>
+              <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
+              <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
+              <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
+              <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+            </div>
+          </div>
+        </div>
         <div class="head"><h2>Product Info</h2><p>Search SKUs and review weekly shipping breakdowns.</p></div>
         <div class="subnav">
           <button class="active" data-products="skus" type="button">SKU Catalogue</button>
@@ -799,7 +930,20 @@
 
       <!-- ===== CARE & ID ===== -->
       <section id="view-careid" class="hidden">
-        <div class="section-top"><button class="btn-back" data-view="map" type="button">← Back to map</button></div>
+        <div class="section-top">
+          <div class="dir-menu-wrap section-opts">
+            <button class="dir-btn section-opts-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              <span>☰ Options</span><span class="dir-caret">▾</span>
+            </button>
+            <div class="dir-menu section-opts-menu" role="menu">
+              <button class="dir-item" data-view="map" type="button" role="menuitem">🗺 Map</button>
+              <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
+              <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
+              <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
+              <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+            </div>
+          </div>
+        </div>
         <div class="head"><h2>Care &amp; Identification</h2><p>Care reference for houseplants and perennials, plus pest identification. Tap any item for full details.</p></div>
         <div class="subnav">
           <button class="active" data-careid="house" type="button">Houseplant Care</button>
@@ -828,14 +972,40 @@
 
       <!-- ===== STORE OPS — GUIDELINES ===== -->
       <section id="view-ops" class="hidden">
-        <div class="section-top"><button class="btn-back" data-view="map" type="button">← Back to map</button></div>
+        <div class="section-top">
+          <div class="dir-menu-wrap section-opts">
+            <button class="dir-btn section-opts-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              <span>☰ Options</span><span class="dir-caret">▾</span>
+            </button>
+            <div class="dir-menu section-opts-menu" role="menu">
+              <button class="dir-item" data-view="map" type="button" role="menuitem">🗺 Map</button>
+              <button class="dir-item" data-view="today" type="button" role="menuitem">📋 My Day</button>
+              <button class="dir-item" data-view="products" type="button" role="menuitem">📦 Product Info</button>
+              <button class="dir-item" data-view="careid" type="button" role="menuitem">🌿 Care &amp; ID</button>
+              <button class="dir-item" data-view="ops" type="button" role="menuitem">🛠 Store Ops</button>
+            </div>
+          </div>
+        </div>
         <div class="head"><h2>Store Operations</h2><p>Reference guidelines for the houseplant area and the field. Admins can edit them live.</p></div>
         <div class="subnav">
-          <button class="active" data-ops="hpa" type="button">HPA Guidelines</button>
-          <button data-ops="hf" type="button">HF Guidelines</button>
+          <button class="active" data-ops="hpa" type="button">Indoor Guidelines</button>
+          <button data-ops="hf" type="button">Outdoor Guidelines</button>
+          <button data-ops="district" type="button">📋 District Checklist</button>
+          <button id="opsAirInc" type="button">🔗 Air Inc</button>
         </div>
         <div id="ops-hpa"><div id="guide-hpa"></div></div>
         <div id="ops-hf" class="hidden"><div id="guide-hf"></div></div>
+        <div id="ops-district" class="hidden">
+          <div id="districtPickerWrap" class="hidden" style="margin-bottom:14px;">
+            <label class="field-label" for="districtPicker">Viewing district</label>
+            <select id="districtPicker" style="max-width:320px;"></select>
+          </div>
+          <div id="districtChecklistHead" class="info-banner" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div><h4 id="districtTitle">District checklist</h4><p id="districtSub">Tasks for this district.</p></div>
+            <button id="btnAddDistrictItem" class="btn btn-ghost hidden" type="button" style="padding:6px 12px;font-size:.8rem;min-height:auto;">＋ Add task</button>
+          </div>
+          <div id="districtChecklist"></div>
+        </div>
       </section>
 
       <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Operations</div>
@@ -936,6 +1106,72 @@
     <div class="modal-actions"><button class="btn btn-ghost" data-close="statusEditor" type="button">Close</button></div>
   </div></div>
 
+  <div id="districtItemEditor" class="modal-back"><div class="modal">
+    <h3 id="districtItemTitle">Add district task</h3>
+    <div class="latin">This task is shared with everyone in the district.</div>
+    <div class="fld"><label class="field-label" for="districtItemText">Task</label>
+      <textarea id="districtItemText" placeholder="e.g. Submit weekly rack counts by Friday"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="districtItemEditor" type="button">Cancel</button>
+      <button id="districtItemSave" class="btn btn-primary" type="button">Save task</button>
+    </div>
+  </div></div>
+
+  <div id="alertEditor" class="modal-back"><div class="modal">
+    <h3>🚨 Alert your team</h3>
+    <div class="latin" id="alertScopeLabel">Sends a notice to everyone in your district.</div>
+    <div class="fld"><label class="field-label" for="alertText">Message</label>
+      <textarea id="alertText" placeholder="e.g. Truck is running 2 hours late today"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="alertEditor" type="button">Cancel</button>
+      <button id="alertSend" class="btn btn-primary" type="button">Send alert</button>
+    </div>
+  </div></div>
+
+  <div id="bannerEditor" class="modal-back"><div class="modal">
+    <h3>📢 Post a team notice</h3>
+    <div class="latin">Shows as a banner at the top of the app for everyone, until a manager removes it.</div>
+    <div class="fld"><label class="field-label" for="bannerKind">Type</label>
+      <select id="bannerKind">
+        <option value="notice">Notice (blue)</option>
+        <option value="announce">Announcement (gold)</option>
+      </select></div>
+    <div class="fld"><label class="field-label" for="bannerTitle">Title</label>
+      <input id="bannerTitle" type="text" placeholder="e.g. Holiday hours / Reset deadline" /></div>
+    <div class="fld"><label class="field-label" for="bannerText">Message</label>
+      <textarea id="bannerText" placeholder="What does the team need to know?"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="bannerEditor" type="button">Cancel</button>
+      <button id="bannerPost" class="btn btn-primary" type="button">Post banner</button>
+    </div>
+  </div></div>
+
+  <div id="feelingEditor" class="modal-back"><div class="modal">
+    <h3>How are you feeling?</h3>
+    <div class="latin">Posts to the feed as: "<b id="feelingPreviewName">You</b> is feeling <span id="feelingPreviewEmoji">🙂</span> <span id="feelingPreviewWord">…</span>, because …"</div>
+    <div class="fld">
+      <label class="field-label">Pick an emoji</label>
+      <div id="feelingEmojiGrid" class="feeling-row"></div>
+    </div>
+    <div class="fld"><label class="field-label" for="feelingWord">Feeling (one word)</label>
+      <input id="feelingWord" type="text" placeholder="e.g. great, tired, motivated" /></div>
+    <div class="fld"><label class="field-label" for="feelingWhy">Because…</label>
+      <textarea id="feelingWhy" placeholder="e.g. we crushed the Aurora reset today"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="feelingEditor" type="button">Cancel</button>
+      <button id="feelingPost" class="btn btn-primary" type="button">Post feeling</button>
+    </div>
+  </div></div>
+
+  <div id="wxModal" class="modal-back"><div class="modal">
+    <h3 id="wxTitle">Forecast</h3>
+    <div class="latin" id="wxSub">Multi-day outlook near your stores.</div>
+    <div id="wxDays" class="wx-days"><div style="color:var(--muted);font-size:.85rem;">Loading forecast…</div></div>
+    <div class="modal-actions"><button class="btn btn-primary" data-close="wxModal" type="button">Close</button></div>
+  </div></div>
+
+  <div id="toastStack"></div>
+
   <div id="photoLightbox" class="lightbox"><img id="lightboxImg" alt="" /></div>
 
   <div id="shoutEditor" class="modal-back"><div class="modal">
@@ -1016,6 +1252,7 @@
       <div class="hub-input">
         <input id="feedPhoto" type="file" accept="image/*" capture="environment" class="hidden" />
         <button id="feedShoutBtn" class="btn btn-ghost" type="button" title="Give a shout-out" style="flex:0 0 auto;padding:10px 12px;">🎉</button>
+        <button id="feedFeelingBtn" class="btn btn-ghost" type="button" title="Post a feeling" style="flex:0 0 auto;padding:10px 12px;">😊</button>
         <button id="feedPhotoBtn" class="btn btn-ghost" type="button" title="Add a photo" style="flex:0 0 auto;padding:10px 12px;">📷</button>
         <input id="feedInput" type="text" placeholder="Share an update with the team…" />
         <button id="feedSend" class="btn btn-primary" type="button">Post</button>
@@ -1024,9 +1261,13 @@
 
     <!-- TEAM CHAT -->
     <div id="hub-chat" class="hub-view hidden">
+      <div id="chatScopeBar" style="display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;">
+        <select id="chatDistrict" style="flex:1;min-width:120px;padding:7px 10px;font-size:.85rem;"></select>
+        <button id="chatAlertBtn" class="btn btn-ghost hidden" type="button" title="Alert this team" style="padding:7px 11px;font-size:.8rem;min-height:auto;">🚨 Alert</button>
+      </div>
       <div id="chatLog" class="hub-log"></div>
       <div class="hub-input">
-        <input id="chatInput" type="text" placeholder="Message the whole team…" />
+        <input id="chatInput" type="text" placeholder="Message your team…" />
         <button id="chatSend" class="btn btn-primary" type="button">Send</button>
       </div>
     </div>
@@ -1086,32 +1327,118 @@ try {
   console.error("Firebase init failed:", e);
 }
 
-/* Usernames are first-initial + last name (e.g. jsmith). We map them to a fake
-   email domain so Firebase email/password auth works without real inboxes. */
-/* ====== TEAM ROSTER (from users.csv — login is checked against this list) ======
-   NOTE: these passwords are visible in the page source. This is the explicitly chosen
-   CSV-login mode (no Firebase Auth). To add/remove people, edit this array.
-   role "RMM" (or "manager"/"admin") grants manager rights. */
-const TEAM_USERS = [
-  { "username": "Thudson", "password": "HF_HPA2026", "name": "Travis Hudson", "role": "RMM" },
-  { "username": "Jtuttle", "password": "HF_HPA2026", "name": "Jason Tuttle", "role": "RMM" },
-  { "username": "Kadams", "password": "HF_HPA2026", "name": "Kelly Adams", "role": "RMM" },
-  { "username": "Lellis", "password": "HPA2026", "name": "Lucas Ellis", "role": "RMM" },
-  { "username": "Jbernau", "password": "HPA2026", "name": "Joe Bernau", "role": "RMM" }
+/* ====== TEAM ROSTER ======
+   Loaded at runtime from users.csv (columns: role, username, password,
+   display_name, and optionally region, district). The list below is a
+   fallback used before the CSV loads or if it can't be fetched.
+   NOTE: passwords are visible in the page source / CSV — this is the
+   explicitly chosen CSV-login mode (no Firebase Auth). */
+let TEAM_USERS = [
+  { "username": "Thudson", "password": "HF_HPA2026", "name": "Travis Hudson", "role": "RMM1", "region":"3,4", "district":"" },
+  { "username": "Jtuttle", "password": "HF_HPA2026", "name": "Jason Tuttle", "role": "RMM2", "region":"1,2", "district":"" },
+  { "username": "Kadams", "password": "HF_HPA2026", "name": "Kelly Adams", "role": "DM", "region":"", "district":"3" },
+  { "username": "Lellis", "password": "HPA2026", "name": "Lucas Ellis", "role": "HPA", "region":"", "district":"" },
+  { "username": "Jbernau", "password": "HPA2026", "name": "Joe Bernau", "role": "Director", "region":"", "district":"" }
 ];
-const MANAGER_ROLES = ["rmm","manager","admin","dm"];
+let usersLoaded = false;
+
+/* Manager roles (item 7). Anyone with one of these roles gets manager rights;
+   the *scope* of those rights is then narrowed by region/district below. */
+const MANAGER_ROLES = ["vp","director","rmm1","rmm2","hpa","hf","dm","rmm","manager","admin"];
+/* Org-wide roles see/edit everything regardless of region/district. */
+const GLOBAL_ROLES  = ["vp","director","hpa","hf","manager","admin"];
+/* Region-scoped roles (RMMs) are limited to the districts in their region. */
+const REGION_ROLES  = ["rmm1","rmm2","rmm"];
+/* District-scoped roles (DMs) are limited to their own district. */
+const DISTRICT_ROLES= ["dm"];
+
+const roleOf = (rec) => (rec && rec.role ? String(rec.role).trim().toLowerCase() : "");
+/* Parse a comma/space separated list of territory numbers into a clean array of strings. */
+function parseTerrList(v){
+  return String(v==null?"":v).split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);
+}
+
 function findTeamUser(username){
   const u=(username||"").trim().toLowerCase();
   return TEAM_USERS.find(x => (x.username||"").trim().toLowerCase()===u) || null;
 }
 function isManagerUser(username){
   const rec=findTeamUser(username);
-  return !!(rec && MANAGER_ROLES.includes((rec.role||"").trim().toLowerCase()));
+  return !!(rec && MANAGER_ROLES.includes(roleOf(rec)));
 }
+
+/* Load the live roster from users.csv. Falls back to the built-in list on failure. */
+async function loadUsersCsv(){
+  try{
+    const rows = await loadCSV("users.csv");
+    if(rows && rows.length){
+      TEAM_USERS = rows.map(r=>({
+        username: r["username"] || "",
+        password: r["password"] || "",
+        name:     r["display_name"] || r["name"] || r["username"] || "",
+        role:     r["role"] || "",
+        region:   r["region"] || "",
+        district: r["district"] || ""
+      })).filter(u=>u.username);
+      usersLoaded = true;
+    }
+  }catch(e){
+    console.warn("users.csv not loaded, using built-in roster:", e && e.message);
+  }
+  return TEAM_USERS;
+}
+
+/* ---- Scope helpers (items 9, 12, 17, 19) ----
+   "district" === a store's territory value. A region is a set of districts. */
+function myRole(){ return roleOf(findTeamUser(me.username)); }
+function myRegionDistricts(){
+  const rec=findTeamUser(me.username); if(!rec) return [];
+  return parseTerrList(rec.region);
+}
+function myDistricts(){
+  const rec=findTeamUser(me.username); if(!rec) return [];
+  return parseTerrList(rec.district);
+}
+/* The set of district (territory) numbers this user may act on.
+   Global roles → null meaning "all". */
+function myScopeDistricts(){
+  const role=myRole();
+  if(GLOBAL_ROLES.includes(role)) return null;            // all districts
+  if(REGION_ROLES.includes(role)) return myRegionDistricts();
+  if(DISTRICT_ROLES.includes(role)) return myDistricts();
+  return [];                                              // non-manager: none
+}
+/* Can the current user act on a given store (by its territory/district)? */
+function canActOnStore(storeId){
+  const scope=myScopeDistricts();
+  if(scope===null) return true;        // global
+  const s=stores[storeId]; if(!s) return false;
+  return scope.includes(String(s.territory||""));
+}
+/* Can the current user act on a given district number directly? */
+function canActOnDistrict(dist){
+  const scope=myScopeDistricts();
+  if(scope===null) return true;
+  return scope.includes(String(dist));
+}
+/* All district numbers (territories) in use, sorted. */
+function allDistricts(){
+  const set={};
+  Object.values(stores).forEach(s=>{ const t=String(s.territory||"").trim(); if(t) set[t]=true; });
+  return Object.keys(set).sort((a,b)=>(+a||0)-(+b||0)||a.localeCompare(b));
+}
+
 /* Gate a manager-only action: managers pass; everyone else is blocked. */
 function requireManager(actionLabel){
   if(me.isManager) return true;
-  alert("Only managers (RMM) can "+(actionLabel||"do that")+". Ask a manager for access.");
+  alert("Only managers can "+(actionLabel||"do that")+". Ask a manager for access.");
+  return false;
+}
+/* Gate an action that must also be inside the user's region/district scope (item 9). */
+function requireStoreScope(storeId, actionLabel){
+  if(!requireManager(actionLabel)) return false;
+  if(canActOnStore(storeId)) return true;
+  alert("That store is outside your region/district. You can only "+(actionLabel||"make changes")+" for stores you manage.");
   return false;
 }
 
@@ -1391,6 +1718,9 @@ function applyAdminUI(){
   if(btn) btn.textContent = editMode ? "🔒 Lock" : "✎ Edit checklist";
   // manager tools button only for managers in real-auth mode
   const mgr=$("mgrBtn"); if(mgr) mgr.classList.add("hidden");
+  // managers can post team banners (items 5 & 6)
+  const pb=$("btnPostBanner"); if(pb) pb.classList.toggle("hidden", !me.isManager);
+  if(typeof renderBanners==="function") renderBanners();   // refresh delete buttons by role
   if(typeof renderChecklistPanel==="function") renderChecklistPanel();
 }
 
@@ -1400,7 +1730,7 @@ function showOnlyView(name){
   VIEWS.forEach(v => setVis($("view-"+v), v===name));
   /* update directory dropdown state */
   $$('.dir-item[data-view]').forEach(b => b.classList.toggle("active", b.dataset.view===name));
-  const cur=$("dirCurrent"); if(cur) cur.textContent = VIEW_LABELS[name] || "🗺 Map";
+  const cur=$("dirCurrent"); if(cur) cur.textContent = "☰ Options";
   closeDirMenu();
   try { sessionStorage.setItem("hub_view", name); } catch(e){}
   if(name==="map" && map) setTimeout(()=>map.invalidateSize(), 80);
@@ -1440,13 +1770,14 @@ const STATUS_LABELS = {
   done:"✅ Done for the day"
 };
 const STATUS_ORDER = ["working","delivery","watering","training","merchandising","driving","break","done",""];
-let me = { uid:"", username:"", name:"User", color:SPRITE_COLORS[0], emoji:"🙂", status:"", isManager:false };
+let me = { uid:"", username:"", name:"User", color:SPRITE_COLORS[0], emoji:"🙂", status:"", isManager:false, role:"" };
 
 /* Sprite prefs are stored per-username so different people on one device stay distinct. */
 function prefKey(k){ return "hub_"+k+"_"+(me.username||"anon"); }
 function loadIdentityFor(username){
   me.username=(username||"").trim().toLowerCase();
   me.isManager=isManagerUser(me.username);
+  me.role=myRole();
   try{
     me.color=localStorage.getItem(prefKey("color"))||"";
     me.emoji=localStorage.getItem(prefKey("emoji"))||"";
@@ -1457,7 +1788,8 @@ function hasSprite(){ return !!(me.color && me.emoji); }
 function setUser(name){
   const u=(name||me.username||"User").trim()||"User";
   me.name=u;
-  $("userName").textContent = u + (me.isManager ? " · Manager" : "");
+  const roleLabel = me.role ? " · "+me.role.toUpperCase() : (me.isManager ? " · Manager" : "");
+  $("userName").textContent = u + roleLabel;
 }
 
 /* ---------- CSV-BASED LOGIN ----------
@@ -1466,7 +1798,7 @@ function setUser(name){
    the database runs on open rules. To return to secure logins later, re-enable
    Firebase Auth. */
 
-function handleLogin(){
+async function handleLogin(){
   const raw=($("loginUser").value||"").trim();
   const username=raw.toLowerCase();
   const pass=($("loginPass").value||"");
@@ -1474,7 +1806,14 @@ function handleLogin(){
   $("loginError").textContent="";
   if(!raw){ $("loginError").textContent="Enter your username."; $("loginUser").focus(); return; }
 
-  const rec=findTeamUser(username);
+  let rec=findTeamUser(username);
+  /* If the CSV roster hasn't finished loading yet, try once more before failing. */
+  if(!rec && !usersLoaded){
+    $("loginError").style.color=""; $("loginError").textContent="Checking the team roster…";
+    await loadUsersCsv();
+    rec=findTeamUser(username);
+    $("loginError").textContent="";
+  }
   if(!rec){ $("loginError").textContent="Username not found. Check spelling (e.g. Jsmith)."; $("loginUser").focus(); return; }
   if(!pass){ $("loginError").textContent="Enter your password."; $("loginPass").focus(); return; }
   if(pass!==rec.password){ $("loginError").textContent="Incorrect password."; $("loginPass").focus(); return; }
@@ -1490,7 +1829,7 @@ function enterApp(username, displayName){
   me.uid = "u-"+(username||"anon").toString().toLowerCase().replace(/[^a-z0-9]/g,"");
   setUser(displayName || username);
   if(db){
-    update(ref(db,"users/"+me.uid), { username, name:displayName||username, isManager:me.isManager, ts:Date.now() }).catch(()=>{});
+    update(ref(db,"users/"+me.uid), { username, name:displayName||username, isManager:me.isManager, role:me.role||"", region:(findTeamUser(username)||{}).region||"", district:(findTeamUser(username)||{}).district||"", ts:Date.now() }).catch(()=>{});
   }
   applyAdminUI();
   showApp("map");
@@ -1548,7 +1887,7 @@ $$('[data-view]').forEach(b => b.addEventListener("click", () => showOnlyView(b.
 })();
 
 /* ---------- generic subtab switcher ---------- */
-function wireTabs(attr, map, scopeSel){
+function wireTabs(attr, map, scopeSel, onShow){
   const scope = scopeSel ? $(scopeSel.replace("#","")) : document;
   if(!scope) return;
   const btns = $$('[data-'+attr+']', scope);
@@ -1556,6 +1895,7 @@ function wireTabs(attr, map, scopeSel){
     const key = btn.getAttribute("data-"+attr);
     Object.keys(map).forEach(k => setVis($(map[k]), k===key));
     btns.forEach(b => b.classList.toggle("active", b.getAttribute("data-"+attr)===key));
+    if(typeof onShow==="function") onShow(key);
   }));
 }
 
@@ -2115,7 +2455,7 @@ function renderGuidelines(){
     if(editingGuide===key){
       panel.innerHTML=`
         <div class="guide-editor">
-          <label class="field-label" for="guideTextarea">${key==="hpa"?"HPA":"HF"} Guidelines — plain text. Put section names in CAPS; start list items with •</label>
+          <label class="field-label" for="guideTextarea">${key==="hpa"?"Indoor":"Outdoor"} Guidelines — plain text. Put section names in CAPS; start list items with •</label>
           <textarea id="guideTextarea" class="guide-textarea">${esc(guidelines[key]||"")}</textarea>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
             <button class="btn btn-ghost" data-guide-cancel type="button">Cancel</button>
@@ -2126,6 +2466,7 @@ function renderGuidelines(){
       panel.querySelector("[data-guide-save]").addEventListener("click",()=>{
         guidelines[key]=panel.querySelector("#guideTextarea").value;
         if(db) set(ref(db,`guidelines/${key}`), guidelines[key]).catch(console.error);
+        if(typeof notifyManagerChange==="function") notifyManagerChange(`updated the ${key==="hpa"?"Indoor":"Outdoor"} guidelines`);
         editingGuide=null;
         renderGuidelines();
       });
@@ -2134,8 +2475,8 @@ function renderGuidelines(){
       panel.innerHTML=`
         <div class="guide-head">
           <div class="info-banner" style="flex:1;margin:0;">
-            <h4>${key==="hpa"?"HPA Guidelines":"HF Guidelines"}</h4>
-            <p>${key==="hpa"?"Houseplant area standards for weekly resets, watering, and photos." : "Field standards, damage & claims, and weekly reporting."}</p>
+            <h4>${key==="hpa"?"Indoor Guidelines":"Outdoor Guidelines"}</h4>
+            <p>${key==="hpa"?"Indoor / houseplant area standards for weekly resets, watering, and photos." : "Outdoor / field standards, damage & claims, and weekly reporting."}</p>
           </div>
           <button class="btn btn-ghost" data-guide-edit="${key}" type="button" style="padding:6px 12px;font-size:.8rem;min-height:auto;">✎ Edit</button>
         </div>
@@ -2305,6 +2646,7 @@ function saveTerritory(){
   // 1) save name + color meta
   territoryMeta[terrEditing] = { name: name, color: terrDraftColor || territoryColor(terrEditing) };
   if(db) set(ref(db,"territoryMeta/"+terrEditing), territoryMeta[terrEditing]).catch(console.error);
+  if(typeof notifyManagerChange==="function") notifyManagerChange("updated a territory");
 
   // 2) apply membership: checked stores join this territory; unchecked stores that
   //    were in it get cleared (left unassigned).
@@ -2507,6 +2849,7 @@ function saveAssign(){
   const rec={ uid:person.uid, name:person.name||"User", emoji:person.emoji||"🙂", color:person.color||"#3da9fc" };
   assignments[selected]=rec;
   if(db) set(ref(db,"assignments/"+selected), rec).catch(console.error);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`assigned store #${selected} to ${rec.name}`);
   closeModal("assignEditor");
   renderAssignRow(selected);
   refreshMarker(selected);
@@ -2644,10 +2987,22 @@ function toggleEditMode(){
 }
 
 /* ----- add / edit / delete a store (manager-gated) ----- */
-function openStoreEditor(){
+function openStoreEditor(mode){
   if(!requireManager("edit or add stores")) return;
 
-  const editing = selected ? stores[selected] : null;
+  /* mode "add" forces a blank form; "edit" edits the selected store; default
+     keeps the old behaviour (edit if a store is selected, else add). */
+  let editing = null;
+  if(mode==="edit"){
+    if(!selected || !stores[selected]){ window.alert("Tap a store on the map first, then choose Edit store."); return; }
+    if(!canActOnStore(selected)){ window.alert("Store #"+selected+" is outside your region/district. You can only edit stores you manage."); return; }
+    editing = stores[selected];
+  } else if(mode==="add"){
+    editing = null;
+  } else {
+    editing = selected ? stores[selected] : null;
+  }
+
   $("storeEditorTitle").textContent = editing ? "Edit store" : "Add store";
   $("seStoreLabel").textContent = editing
     ? ("Editing store #"+editing.id+" — or change the number to add a new one.")
@@ -2693,6 +3048,7 @@ function saveStore(){
   const territory = $("seTerritory") ? $("seTerritory").value.trim() : prevTerritory;
   stores[id] = { id, name:name||("#"+id), lat, lng, address, territory, checked, photos };
   if(db) update(ref(db,`stores/${id}`), { name:stores[id].name, lat, lng, address, territory }).catch(console.error);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`${original?"updated":"added"} store #${id} (${stores[id].name})`);
 
   closeModal("storeEditor");
   refreshMarker(id);
@@ -2747,6 +3103,7 @@ function saveItem(){
     checklist.push({ id:nextItemId(), text:txt });
   }
   persistChecklist();
+  if(typeof notifyManagerChange==="function") notifyManagerChange(editingId?"edited a checklist item":"added a checklist item");
   closeModal("itemEditor");
   if(!db){ refreshAllMarkers(); renderChecklistPanel(); }
 }
@@ -2760,6 +3117,7 @@ function deleteItem(itemId){
     }
   });
   persistChecklist();
+  if(typeof notifyManagerChange==="function") notifyManagerChange("removed a checklist item");
   if(!db){ refreshAllMarkers(); renderChecklistPanel(); }
 }
 
@@ -2810,7 +3168,8 @@ async function initMap(){
 
   $("btnEditChecklist").addEventListener("click", toggleEditMode);
   $("btnDoneEditing").addEventListener("click", ()=>{ editMode=false; applyAdminUI(); });
-  $("btnStore").addEventListener("click", openStoreEditor);
+  $("btnAddStore").addEventListener("click", ()=>openStoreEditor("add"));
+  $("btnEditStore").addEventListener("click", ()=>openStoreEditor("edit"));
   $("seSave").addEventListener("click", saveStore);
   $("seDelete").addEventListener("click", deleteStore);
   $("spriteSave").addEventListener("click", saveSprite);
@@ -2820,6 +3179,10 @@ async function initMap(){
   $("assignClear").addEventListener("click", clearAssign);
   $("terrSave").addEventListener("click", saveTerritory);
   $("terrStoreSearch").addEventListener("input",()=> buildTerrStores($("terrStoreSearch").value));
+  initSectionOptionMenus();   // item 2: Options dropdowns on every tab
+  initStoreSearch();          // item 8: search a store and jump to it
+  initAirInc();               // item 15: Air Inc external link
+  initWeatherForecast();      // item 3: tap weather chip for the multi-day forecast
   applyAdminUI();
 
   if(db) watchPresence();
@@ -2897,6 +3260,106 @@ async function initMap(){
   }
 }
 
+/* ===== Batch 1 helpers ===== */
+
+/* Item 2 — wire the "Options" dropdown that appears on every non-map section. */
+function initSectionOptionMenus(){
+  $$('.section-opts').forEach(wrap=>{
+    const toggle=wrap.querySelector('.section-opts-toggle');
+    const menu=wrap.querySelector('.section-opts-menu');
+    if(!toggle||!menu) return;
+    toggle.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const open=menu.classList.toggle('show');
+      toggle.setAttribute('aria-expanded', open?'true':'false');
+      $$('.section-opts-menu').forEach(m=>{ if(m!==menu) m.classList.remove('show'); });
+    });
+    menu.querySelectorAll('[data-view]').forEach(btn=>{
+      btn.addEventListener('click',()=>{ menu.classList.remove('show'); showOnlyView(btn.dataset.view); });
+    });
+  });
+  document.addEventListener('click',(e)=>{
+    $$('.section-opts').forEach(wrap=>{
+      if(!wrap.contains(e.target)) wrap.querySelector('.section-opts-menu')?.classList.remove('show');
+    });
+  });
+}
+
+/* Item 8 — store search: type a number or name, jump to it on the map. */
+function initStoreSearch(){
+  const input=$("storeSearch"), box=$("storeSearchResults");
+  if(!input||!box) return;
+  function close(){ box.classList.remove("show"); box.innerHTML=""; }
+  function go(id){ close(); input.value=""; if(curView!=="map"){ showOnlyView("map"); setTimeout(()=>selectStore(id),120); } else { selectStore(id); } }
+  input.addEventListener("input",()=>{
+    const q=(input.value||"").toLowerCase().trim();
+    if(!q){ close(); return; }
+    const matches=Object.values(stores).filter(s=>{
+      return ("#"+s.id).toLowerCase().includes(q) || (s.id||"").toLowerCase().includes(q) || (s.name||"").toLowerCase().includes(q);
+    }).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).slice(0,12);
+    if(!matches.length){ box.innerHTML='<button type="button" disabled style="color:var(--muted);cursor:default;">No matching stores</button>'; box.classList.add("show"); return; }
+    box.innerHTML="";
+    matches.forEach(s=>{
+      const b=document.createElement("button"); b.type="button";
+      b.innerHTML=`<b>#${esc(s.id)}</b> · ${esc(s.name||"")}${s.territory?` <span style="color:var(--faint)">· Terr. ${esc(s.territory)}</span>`:""}`;
+      b.addEventListener("click",()=>go(s.id));
+      box.appendChild(b);
+    });
+    box.classList.add("show");
+  });
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ const first=box.querySelector("button:not([disabled])"); if(first) first.click(); }
+    else if(e.key==="Escape"){ close(); }
+  });
+  document.addEventListener("click",(e)=>{ if(!e.target.closest(".store-search-wrap")) close(); });
+}
+
+/* Item 15 — Air Inc opens the external site in a new tab. */
+function initAirInc(){
+  const b=$("opsAirInc"); if(!b) return;
+  b.addEventListener("click",()=> window.open("https://air.inc","_blank","noopener"));
+}
+
+/* Item 3 — tap the weather chip for a multi-day forecast based on store location. */
+function initWeatherForecast(){
+  const chip=$("weatherChip"); if(!chip) return;
+  chip.addEventListener("click",()=>{ openModal("wxModal"); loadForecast(); });
+}
+async function loadForecast(){
+  const { lat, lng } = rosterCentroid();
+  $("wxSub").textContent = "Daily outlook near your stores.";
+  const days=$("wxDays");
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}`
+    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`
+    + `&temperature_unit=fahrenheit&timezone=auto&forecast_days=16`;
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error("wx "+res.status);
+    const data=await res.json();
+    const d=data.daily||{};
+    const times=d.time||[];
+    if(!times.length){ days.innerHTML='<div style="color:var(--muted);font-size:.85rem;">No forecast available.</div>'; return; }
+    days.innerHTML="";
+    times.forEach((iso,i)=>{
+      const code=Number(d.weather_code&&d.weather_code[i]);
+      const wx=WX[code]||["🌡","—"]; const emoji=wx[0], label=wx[1];
+      const hi=d.temperature_2m_max&&d.temperature_2m_max[i], lo=d.temperature_2m_min&&d.temperature_2m_min[i];
+      const pop=d.precipitation_probability_max&&d.precipitation_probability_max[i];
+      const dt=new Date(iso+"T12:00:00");
+      const dayName=i===0 ? "Today" : new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric"}).format(dt);
+      const cond = label + (pop!=null && pop>0 ? ` · ${pop}% precip` : "");
+      const row=document.createElement("div"); row.className="wx-day";
+      row.innerHTML=`<div class="wx-emoji">${emoji}</div>
+        <div class="wx-name"><div class="d">${esc(dayName)}</div><div class="c">${esc(cond)}</div></div>
+        <div class="wx-temp"><span class="hi">${hi!=null?Math.round(hi)+"°":"—"}</span> <span class="lo">${lo!=null?Math.round(lo)+"°":""}</span></div>`;
+      days.appendChild(row);
+    });
+  }catch(e){
+    console.error("forecast:",e);
+    days.innerHTML='<div style="color:var(--muted);font-size:.85rem;">Couldn\u2019t reach the weather service. Try again shortly.</div>';
+  }
+}
+
 function fitToStores(){
   const pts=Object.values(stores).filter(s=>s.lat!=null&&s.lng!=null).map(s=>[s.lat,s.lng]);
   if(pts.length && map){ try{ map.fitBounds(pts,{padding:[40,40],maxZoom:11}); }catch(e){} }
@@ -2957,9 +3420,19 @@ function presenceIcon(p, isMe){
   const color=p.color||"#3da9fc";
   const emoji=p.emoji||"🙂";
   const ring=isMe ? "#ffffff" : "rgba(255,255,255,.85)";
+  /* Small status badge above the sprite (item 1). STATUS_LABELS look like "🛠 Working";
+     we show the leading emoji as a compact badge so the status reads at a glance. */
+  let statusBadge="";
+  if(p.status && STATUS_LABELS[p.status]){
+    const lbl=STATUS_LABELS[p.status];
+    const m=lbl.match(/^(\p{Emoji}+)\s*(.*)$/u);
+    const badgeText = m ? (m[1]+" "+m[2]) : lbl;
+    statusBadge=`<div class="sprite-status-badge">${badgeText.replace(/</g,"&lt;")}</div>`;
+  }
   return L.divIcon({
     className:"",
     html:`<div style="position:relative;transform:translate(-50%,-50%);">
+      ${statusBadge}
       <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
         font-size:18px;background:${color};border:3px solid ${ring};
         box-shadow:0 0 0 ${isMe?"3px rgba(61,169,252,.35),":""}0 3px 10px rgba(0,0,0,.6);">${emoji}</div>
@@ -3290,19 +3763,31 @@ function renderFeed(val){
   log.innerHTML="";
   arr.forEach(p=>{
     const isShout = p.kind==="shout";
-    const el=document.createElement("div"); el.className="feed-item"+(isShout?" shout":"");
-    const txt = p.text ? `<div class="txt">${esc(p.text)}</div>` : "";
-    const photo = p.photo ? `<img class="photo" src="${esc(p.photo)}" alt="photo" loading="lazy">` : "";
-    const top = isShout && p.toName
-      ? `${esc(p.name||'User')} → <b>${esc(p.toName)}</b>`
-      : `${esc(p.name||'User')}`;
+    const isFeeling = p.kind==="feeling";
+    const el=document.createElement("div");
+    el.className="feed-item"+(isShout?" shout":"")+(isFeeling?" feeling":"");
+
+    let bodyInner;
+    if(isFeeling){
+      /* Item 11 format: "<name> is feeling <emoji> <word>, because <why>." */
+      const because = p.feelWhy ? `, because ${esc(p.feelWhy)}` : "";
+      bodyInner = `<div class="top">${esc(p.name||'User')}</div>
+        <div class="txt"><b>${esc(p.name||'User')}</b> is feeling ${esc(p.feelEmoji||'🙂')} <b>${esc(p.feelWord||'')}</b>${because}.</div>
+        <div class="when">${esc(fmtTime(p.ts))}</div>`;
+    } else {
+      const txt = p.text ? `<div class="txt">${esc(p.text)}</div>` : "";
+      const photo = p.photo ? `<img class="photo" src="${esc(p.photo)}" alt="photo" loading="lazy">` : "";
+      const top = isShout && p.toName
+        ? `${esc(p.name||'User')} → <b>${esc(p.toName)}</b>`
+        : `${esc(p.name||'User')}`;
+      bodyInner = `<div class="top">${top}</div>${txt}${photo}<div class="when">${esc(fmtTime(p.ts))}</div>`;
+    }
+
     el.innerHTML=`<div class="dot" style="background:${esc(p.color||'#3da9fc')}">${esc(p.emoji||'🙂')}</div>
-      <div class="body"><div class="top">${top}</div>
-        ${txt}${photo}
-        <div class="when">${esc(fmtTime(p.ts))}</div></div>`;
+      <div class="body">${bodyInner}</div>`;
     if(p.photo){
       const img=el.querySelector(".photo");
-      img.addEventListener("click",()=>openLightbox(p.photo));
+      if(img) img.addEventListener("click",()=>openLightbox(p.photo));
     }
     log.appendChild(el);
   });
@@ -3383,11 +3868,51 @@ function openLightbox(src){
   $("photoLightbox").classList.add("show");
 }
 
-/* ----- TEAM CHAT ----- */
+/* ----- TEAM CHAT (district-scoped, item 19) ----- */
+/* Messages live under chatRooms/<district>. Which rooms a user can see:
+   global roles → all districts; RMM → their region's districts; DM → their
+   district; a regular field user → the districts of their assigned stores. */
+let chatRoom=null, chatUnsubRoom=null;
+
+function chatViewableDistricts(){
+  const scope=myScopeDistricts();
+  if(scope===null) return allDistricts();           // global
+  if(scope.length) return scope.slice();            // RMM / DM
+  /* field user: districts of stores assigned to them, else all (read-only feel) */
+  const set=new Set();
+  myAssignedStoreIds().forEach(id=>{ const t=String(stores[id]&&stores[id].territory||""); if(t) set.add(t); });
+  return set.size ? Array.from(set).sort((a,b)=>(+a||0)-(+b||0)) : allDistricts();
+}
+function populateChatDistricts(){
+  const sel=$("chatDistrict"); if(!sel) return;
+  const dists=chatViewableDistricts();
+  sel.innerHTML="";
+  if(!dists.length){ const o=document.createElement("option"); o.value=""; o.textContent="No team"; sel.appendChild(o); }
+  dists.forEach(d=>{ const o=document.createElement("option"); o.value=d; o.textContent="District "+d; sel.appendChild(o); });
+  /* default to current room if still valid, else first */
+  if(!chatRoom || !dists.includes(chatRoom)) chatRoom = dists[0] || null;
+  if(chatRoom) sel.value=chatRoom;
+  /* show the alert button only to managers who can act on this district */
+  setVis($("chatAlertBtn"), me.isManager && chatRoom && canActOnDistrict(chatRoom));
+}
+function openChatRoom(dist){
+  chatRoom=dist;
+  const log=$("chatLog"); if(log) log.innerHTML='<div class="hub-empty">Loading…</div>';
+  setVis($("chatAlertBtn"), me.isManager && chatRoom && canActOnDistrict(chatRoom));
+  if(db && chatRoom){
+    onValue(ref(db,"chatRooms/"+chatRoom), snap=>{
+      const val=snap.val()||{};
+      renderMessages($("chatLog"), val);
+      flagActivity(Math.max(0,...Object.values(val).map(p=>p&&p.ts||0)));
+    }, err=>console.error("chat read:",err));
+  } else if(!db){
+    if(log) log.innerHTML='<div class="hub-empty">Offline — chat needs the database.</div>';
+  }
+}
 function sendChat(text){
-  if(!db || !text.trim()) return;
-  const node=push(ref(db,"chat"));
-  set(node, { uid:me.uid, name:me.name, emoji:me.emoji, text:text.trim(), ts:Date.now() }).catch(console.error);
+  if(!db || !text.trim() || !chatRoom) return;
+  const node=push(ref(db,"chatRooms/"+chatRoom));
+  set(node, { uid:me.uid, name:me.name, emoji:me.emoji, text:text.trim(), district:chatRoom, ts:Date.now() }).catch(console.error);
 }
 
 /* ----- DIRECT MESSAGES ----- */
@@ -3453,8 +3978,7 @@ function setStatus(key){
   me.status=key||"";
   try{ localStorage.setItem(prefKey("status"),me.status); }catch(e){}
   updateStatusBtn();
-  writePresence();   // updates sprite popup with status
-  if(me.status) postFeed(`is now ${STATUS_LABELS[me.status]}`, "status");
+  writePresence();   // updates the live sprite (badge + popup) with the new status
 }
 function updateStatusBtn(){
   const b=$("statusBtn"); if(!b) return;
@@ -3468,6 +3992,7 @@ function switchHub(view){
   $$('.hub-tab').forEach(t=> t.classList.toggle("active", t.dataset.hub===view));
   if(view==="dms"){ closeDm(); }
   if(view==="ask" && !$("sproutLog").children.length){ sproutGreet(); }
+  if(view==="chat"){ populateChatDistricts(); if(chatRoom) openChatRoom(chatRoom); }
 }
 function updateHubBadge(){
   // simple unread hint: show a dot if hub is closed (cleared when opened)
@@ -3531,6 +4056,9 @@ function initHub(){
   const chatSend=()=>{ const v=$("chatInput").value; if(v.trim()){ sendChat(v); $("chatInput").value=""; } };
   $("chatSend").addEventListener("click", chatSend);
   $("chatInput").addEventListener("keydown",e=>{ if(e.key==="Enter") chatSend(); });
+  $("chatDistrict").addEventListener("change",(e)=> openChatRoom(e.target.value));
+  $("chatAlertBtn").addEventListener("click", openAlertEditor);
+  $("alertSend").addEventListener("click", sendTeamAlert);
   // DMs
   const dmSend=()=>{ const v=$("dmInput").value; if(v.trim()){ sendDm(v); $("dmInput").value=""; } };
   $("dmSend").addEventListener("click", dmSend);
@@ -3549,11 +4077,7 @@ function initHub(){
       renderFeed(val);
       flagActivity(Math.max(0,...Object.values(val).map(p=>p&&p.ts||0)));
     }, err=>console.error("feed read:",err));
-    onValue(ref(db,"chat"), snap=>{
-      const val=snap.val()||{};
-      renderMessages($("chatLog"), val);
-      flagActivity(Math.max(0,...Object.values(val).map(p=>p&&p.ts||0)));
-    }, err=>console.error("chat read:",err));
+    /* Team chat is district-scoped: the active room is subscribed in openChatRoom(). */
     // DM peers come from presence (people who've appeared on the map)
     onValue(ref(db,"presence"), snap=>{
       const val=snap.val()||{};
@@ -3574,12 +4098,359 @@ function flagActivity(newestTs){
 }
 
 /* ============================================================
+   BATCH 2 — Team banners, feelings, in-app change alerts
+   ============================================================ */
+
+/* ----- In-app toast (item 4, in-app portion) ----- */
+function showToast(text, icon){
+  const stack=$("toastStack"); if(!stack) return;
+  const el=document.createElement("div"); el.className="toast";
+  el.innerHTML=`<span class="ti">${icon||"🔔"}</span><span>${text}</span>`;
+  stack.appendChild(el);
+  setTimeout(()=>{ el.style.transition="opacity .4s"; el.style.opacity="0"; setTimeout(()=>el.remove(),420); }, 5000);
+}
+
+/* A manager made a change anywhere → record it + (for others) show a toast.
+   Item 4's true phone push is delivered separately via the service worker /
+   Cloud Function (see Batch 5); this is the in-app half that always works. */
+let activitySeenTs = 0, activityPrimed = false;
+function notifyManagerChange(text){
+  if(!db) return;
+  const node=push(ref(db,"activity"));
+  set(node, { uid:me.uid, name:me.name, text:text||"made a change", ts:Date.now() }).catch(()=>{});
+}
+function watchActivity(){
+  if(!db) return;
+  onValue(ref(db,"activity"), snap=>{
+    const val=snap.val()||{};
+    const arr=Object.values(val).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    if(!activityPrimed){ activityPrimed=true; activitySeenTs = arr.length?arr[arr.length-1].ts:Date.now(); return; }
+    arr.forEach(a=>{
+      if(a.ts>activitySeenTs && a.uid!==me.uid){
+        showToast(`<b>${esc(a.name||"A manager")}</b> ${esc(a.text||"made a change")}`, "🛠");
+      }
+    });
+    if(arr.length) activitySeenTs=Math.max(activitySeenTs, arr[arr.length-1].ts);
+  }, err=>console.error("activity read:",err));
+}
+
+/* ----- Team banners (items 5 & 6) ----- */
+let banners = {};
+function renderBanners(){
+  const stack=$("bannerStack"); if(!stack) return;
+  stack.innerHTML="";
+  const arr=Object.keys(banners||{}).map(k=>({ id:k, ...banners[k] })).filter(b=>b && (b.title||b.text))
+    .sort((a,b)=>(a.ts||0)-(b.ts||0));   // oldest on top so a #5 notice sits above later ones
+  arr.forEach(b=>{
+    const el=document.createElement("div");
+    el.className="team-banner"+(b.kind==="announce"?" announce":"");
+    const del = me.isManager
+      ? `<button class="tb-del" title="Remove banner" type="button" data-del="${esc(b.id)}">×</button>` : "";
+    el.innerHTML=`<div class="tb-icon">${b.kind==="announce"?"📣":"📢"}</div>
+      <div class="tb-body">
+        ${b.title?`<div class="tb-title">${esc(b.title)}</div>`:""}
+        ${b.text?`<div class="tb-text">${esc(b.text)}</div>`:""}
+        <div class="tb-meta">${esc(b.name||"Manager")} · ${esc(fmtTime(b.ts))}</div>
+      </div>${del}`;
+    if(me.isManager){
+      const d=el.querySelector("[data-del]");
+      if(d) d.addEventListener("click",()=>deleteBanner(b.id));
+    }
+    stack.appendChild(el);
+  });
+}
+function openBannerEditor(){
+  if(!requireManager("post a team banner")) return;
+  $("bannerKind").value="notice";
+  $("bannerTitle").value="";
+  $("bannerText").value="";
+  openModal("bannerEditor");
+  setTimeout(()=>$("bannerTitle").focus(),0);
+}
+function postBanner(){
+  if(!requireManager("post a team banner")) return;
+  const kind=$("bannerKind").value||"notice";
+  const title=($("bannerTitle").value||"").trim();
+  const text=($("bannerText").value||"").trim();
+  if(!title && !text){ $("bannerTitle").focus(); return; }
+  if(db){
+    const node=push(ref(db,"banners"));
+    set(node, { kind, title, text, uid:me.uid, name:me.name, ts:Date.now() }).catch(err=>{
+      console.error("banner post:",err); alert("Couldn't post the banner: "+(err&&err.message||"error"));
+    });
+    notifyManagerChange(`posted a team ${kind==="announce"?"announcement":"notice"}: ${title||text}`);
+  } else {
+    banners["local-"+Date.now()]={ kind, title, text, name:me.name, ts:Date.now() };
+    renderBanners();
+  }
+  closeModal("bannerEditor");
+}
+function deleteBanner(id){
+  if(!requireManager("remove a banner")) return;
+  if(!window.confirm("Remove this banner for everyone?")) return;
+  delete banners[id];
+  if(db) remove(ref(db,"banners/"+id)).catch(console.error);
+  renderBanners();
+  notifyManagerChange("removed a team banner");
+}
+function initBanners(){
+  $("btnPostBanner").addEventListener("click", openBannerEditor);
+  $("bannerPost").addEventListener("click", postBanner);
+  if(db){
+    onValue(ref(db,"banners"), snap=>{ banners=snap.val()||{}; renderBanners(); }, err=>console.error("banners read:",err));
+  }
+}
+
+/* ----- Feelings in the feed (item 11) ----- */
+const FEELING_EMOJIS = ["😊","😄","😎","💪","🙌","🥳","😌","🤔","😐","😴","😓","😤","😟","😞","🤒","🌱","☀️","🔥"];
+let feelingDraftEmoji = "😊";
+function buildFeelingGrid(){
+  const grid=$("feelingEmojiGrid"); grid.innerHTML="";
+  FEELING_EMOJIS.forEach(em=>{
+    const b=document.createElement("button"); b.type="button"; b.textContent=em;
+    b.classList.toggle("sel", em===feelingDraftEmoji);
+    b.addEventListener("click",()=>{ feelingDraftEmoji=em; buildFeelingGrid(); paintFeelingPreview(); });
+    grid.appendChild(b);
+  });
+}
+function paintFeelingPreview(){
+  $("feelingPreviewName").textContent = me.name || "You";
+  $("feelingPreviewEmoji").textContent = feelingDraftEmoji;
+  $("feelingPreviewWord").textContent = ($("feelingWord").value||"").trim() || "…";
+}
+function openFeelingEditor(){
+  feelingDraftEmoji="😊";
+  $("feelingWord").value=""; $("feelingWhy").value="";
+  buildFeelingGrid(); paintFeelingPreview();
+  openModal("feelingEditor");
+  setTimeout(()=>$("feelingWord").focus(),0);
+}
+function postFeeling(){
+  const word=($("feelingWord").value||"").trim();
+  const why=($("feelingWhy").value||"").trim();
+  if(!word){ $("feelingWord").focus(); return; }
+  /* Stored as a structured feeling so renderFeed can format it consistently. */
+  if(db){
+    const node=push(ref(db,"feed"));
+    set(node, { uid:me.uid, name:me.name, emoji:me.emoji, color:me.color,
+      kind:"feeling", feelEmoji:feelingDraftEmoji, feelWord:word, feelWhy:why, ts:Date.now() })
+      .catch(err=>{ console.error("feeling post:",err); alert("Couldn't post: "+(err&&err.message||"error")); });
+  }
+  closeModal("feelingEditor");
+}
+function initFeeling(){
+  $("feedFeelingBtn").addEventListener("click", openFeelingEditor);
+  $("feelingPost").addEventListener("click", postFeeling);
+  $("feelingWord").addEventListener("input", paintFeelingPreview);
+  $("feelingWord").addEventListener("keydown",e=>{ if(e.key==="Enter") $("feelingWhy").focus(); });
+}
+
+/* ============================================================
+   BATCH 3 — District checklists, team alerts, scoped chat
+   ============================================================ */
+
+/* ----- District checklist (item 17) ----- */
+let districtChecklists = {};   // { "3": [ {id,text,done?}, ... ] }
+let viewingDistrict = null;    // which district is currently shown
+
+/* Which districts can the current user VIEW in the district-checklist tab?
+   Global roles → all; RMM → their region; DM → their district. */
+function viewableDistricts(){
+  const scope=myScopeDistricts();
+  return scope===null ? allDistricts() : scope.slice();
+}
+/* Can the current user EDIT the given district's checklist? (item 9 applied to #17) */
+function canEditDistrict(dist){
+  return me.isManager && canActOnDistrict(dist);
+}
+function nextDistItemId(){ return "d-"+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+function renderDistrictTab(){
+  const wrap=$("districtChecklist"); if(!wrap) return;
+  const viewable=viewableDistricts();
+  const pickerWrap=$("districtPickerWrap"), picker=$("districtPicker");
+
+  if(!viewable.length){
+    setVis(pickerWrap,false);
+    $("districtTitle").textContent="District checklist";
+    $("districtSub").textContent="You don't have a district assigned. Ask an admin to set your district in users.csv.";
+    wrap.innerHTML='<div class="hub-empty">No district to show.</div>';
+    setVis($("btnAddDistrictItem"),false);
+    return;
+  }
+
+  /* Show a picker only when the user can see more than one district. */
+  if(viewable.length>1){
+    setVis(pickerWrap,true);
+    picker.innerHTML="";
+    viewable.forEach(d=>{ const o=document.createElement("option"); o.value=d; o.textContent="District "+d; picker.appendChild(o); });
+    if(!viewingDistrict || !viewable.includes(viewingDistrict)) viewingDistrict=viewable[0];
+    picker.value=viewingDistrict;
+  } else {
+    setVis(pickerWrap,false);
+    viewingDistrict=viewable[0];
+  }
+
+  const dist=viewingDistrict;
+  const canEdit=canEditDistrict(dist);
+  $("districtTitle").textContent="District "+dist+" checklist";
+  $("districtSub").textContent = canEdit ? "Tap a task to mark it done. You can add and remove tasks." : "Tap a task to mark it done.";
+  setVis($("btnAddDistrictItem"), canEdit);
+
+  const items=districtChecklists[dist]||[];
+  if(!items.length){
+    wrap.innerHTML=`<div class="hub-empty">No tasks for District ${esc(dist)} yet.${canEdit?" Use “Add task” to create the first one.":""}</div>`;
+    return;
+  }
+  wrap.innerHTML = items.map(it=>{
+    const adminBtns = canEdit
+      ? `<span class="cl-admin">
+           <button class="cl-icon" data-dedit="${esc(it.id)}" title="Edit" type="button">✎</button>
+           <button class="cl-icon" data-ddel="${esc(it.id)}" title="Delete" type="button">🗑</button>
+         </span>` : "";
+    return `<label class="cl-live-item">
+      <input type="checkbox" data-ditem="${esc(it.id)}" ${it.done?"checked":""}>
+      <span class="cl-live-text${it.done?" done":""}">${esc(it.text)}</span>
+      ${adminBtns}
+    </label>`;
+  }).join("");
+
+  $$('input[data-ditem]', wrap).forEach(cb=>{
+    cb.addEventListener("change",()=> setDistrictItemDone(dist, cb.dataset.ditem, cb.checked));
+  });
+  $$('[data-dedit]', wrap).forEach(b=> b.addEventListener("click",()=> openDistrictItemEditor(dist, b.dataset.dedit)));
+  $$('[data-ddel]', wrap).forEach(b=> b.addEventListener("click",()=> deleteDistrictItem(dist, b.dataset.ddel)));
+}
+function persistDistrict(dist){
+  if(db) set(ref(db,"districtChecklists/"+dist), districtChecklists[dist]||[]).catch(console.error);
+}
+function setDistrictItemDone(dist, itemId, on){
+  const items=districtChecklists[dist]||[];
+  const it=items.find(i=>i.id===itemId); if(!it) return;
+  it.done=!!on;
+  persistDistrict(dist);
+  renderDistrictTab();
+}
+let districtItemEditing={ dist:null, id:null };
+function openDistrictItemEditor(dist, itemId){
+  if(!canEditDistrict(dist)){ alert("Only managers of District "+dist+" can edit its checklist."); return; }
+  districtItemEditing={ dist, id:itemId||null };
+  const items=districtChecklists[dist]||[];
+  const existing=itemId?items.find(i=>i.id===itemId):null;
+  $("districtItemTitle").textContent=existing?"Edit district task":"Add district task";
+  $("districtItemText").value=existing?existing.text:"";
+  openModal("districtItemEditor");
+  setTimeout(()=>$("districtItemText").focus(),0);
+}
+function saveDistrictItem(){
+  const { dist, id }=districtItemEditing;
+  if(!dist || !canEditDistrict(dist)){ closeModal("districtItemEditor"); return; }
+  const txt=($("districtItemText").value||"").trim();
+  if(!txt){ closeModal("districtItemEditor"); return; }
+  districtChecklists[dist]=districtChecklists[dist]||[];
+  if(id){
+    const it=districtChecklists[dist].find(i=>i.id===id); if(it) it.text=txt;
+  } else {
+    districtChecklists[dist].push({ id:nextDistItemId(), text:txt, done:false });
+  }
+  persistDistrict(dist);
+  notifyManagerChange(`updated the District ${dist} checklist`);
+  closeModal("districtItemEditor");
+  renderDistrictTab();
+}
+function deleteDistrictItem(dist, itemId){
+  if(!canEditDistrict(dist)) return;
+  districtChecklists[dist]=(districtChecklists[dist]||[]).filter(i=>i.id!==itemId);
+  persistDistrict(dist);
+  notifyManagerChange(`updated the District ${dist} checklist`);
+  renderDistrictTab();
+}
+function initDistrictChecklist(){
+  $("btnAddDistrictItem").addEventListener("click",()=>{ if(viewingDistrict) openDistrictItemEditor(viewingDistrict, null); });
+  $("districtItemSave").addEventListener("click", saveDistrictItem);
+  $("districtPicker").addEventListener("change",(e)=>{ viewingDistrict=e.target.value; renderDistrictTab(); });
+  if(db){
+    onValue(ref(db,"districtChecklists"), snap=>{
+      const val=snap.val()||{};
+      /* Firebase may store arrays as objects; normalise to arrays. */
+      districtChecklists={};
+      Object.keys(val).forEach(d=>{
+        const v=val[d];
+        districtChecklists[d]=Array.isArray(v)?v.filter(Boolean):Object.keys(v||{}).map(k=>v[k]).filter(Boolean);
+      });
+      if(curView==="ops") renderDistrictTab();
+    }, err=>console.error("districtChecklists read:",err));
+  }
+}
+
+/* ----- Team alerts (item 12) ----- */
+/* A DM (or any scoped manager) sends an alert to their district's team.
+   Stored under teamAlerts/<district>; everyone in that district sees a toast. */
+let teamAlertSeen={}, teamAlertPrimed=false;
+function openAlertEditor(){
+  if(!requireManager("send a team alert")) return;
+  const dists=myScopeDistricts();
+  if(dists!==null && !dists.length){ alert("You don't have a district assigned, so there's no team to alert."); return; }
+  const label = dists===null ? "Sends a notice to every team."
+    : (dists.length===1 ? "Sends a notice to everyone in District "+dists[0]+"."
+       : "Sends a notice to your districts: "+dists.join(", ")+".");
+  $("alertScopeLabel").textContent=label;
+  $("alertText").value="";
+  openModal("alertEditor");
+  setTimeout(()=>$("alertText").focus(),0);
+}
+function sendTeamAlert(){
+  if(!requireManager("send a team alert")) return;
+  const msg=($("alertText").value||"").trim();
+  if(!msg){ $("alertText").focus(); return; }
+  let targets=myScopeDistricts();
+  if(targets===null) targets=allDistricts();   // global roles alert everyone
+  if(db){
+    targets.forEach(d=>{
+      const node=push(ref(db,"teamAlerts/"+d));
+      set(node, { uid:me.uid, name:me.name, text:msg, district:d, ts:Date.now() }).catch(console.error);
+    });
+  }
+  closeModal("alertEditor");
+  showToast("Alert sent to "+(targets.length===1?("District "+targets[0]):(targets.length+" districts")), "🚨");
+}
+/* Listen for alerts addressed to MY district(s). */
+function watchTeamAlerts(){
+  if(!db) return;
+  onValue(ref(db,"teamAlerts"), snap=>{
+    const val=snap.val()||{};
+    const myDists = myScopeDistricts();
+    /* A non-manager belongs to the district of the stores they're assigned, but the
+       simplest reliable signal is: show alerts for any district that contains a store
+       assigned to me, plus (for managers) my own scope. */
+    const relevant = new Set();
+    if(myDists===null){ Object.keys(val).forEach(d=>relevant.add(d)); }
+    else { myDists.forEach(d=>relevant.add(String(d))); }
+    /* Also include districts of stores assigned to me (covers regular field users). */
+    myAssignedStoreIds().forEach(id=>{ const t=String(stores[id]&&stores[id].territory||""); if(t) relevant.add(t); });
+
+    relevant.forEach(d=>{
+      const alerts=val[d]||{};
+      const arr=Object.values(alerts).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
+      if(!teamAlertPrimed){ if(arr.length) teamAlertSeen[d]=arr[arr.length-1].ts; return; }
+      arr.forEach(a=>{
+        if(a.ts>(teamAlertSeen[d]||0) && a.uid!==me.uid){
+          showToast(`🚨 <b>${esc(a.name||"Your DM")}</b> (District ${esc(d)}): ${esc(a.text||"")}`, "🚨");
+        }
+      });
+      if(arr.length) teamAlertSeen[d]=Math.max(teamAlertSeen[d]||0, arr[arr.length-1].ts);
+    });
+    teamAlertPrimed=true;
+  }, err=>console.error("teamAlerts read:",err));
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 function init(){
   wireTabs("products",{skus:"products-skus",orders:"products-orders"},"#view-products");
   wireTabs("careid",{house:"careid-house",perennial:"careid-perennial",pest:"careid-pest"},"#view-careid");
-  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf"},"#view-ops");
+  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district"},"#view-ops",(key)=>{ if(key==="district") renderDistrictTab(); });
 
   initGuidelines();
 
@@ -3588,11 +4459,17 @@ function init(){
   initOrders();
   initCareId();
   initHub();
+  initBanners();   // items 5 & 6
+  initFeeling();   // item 11
+  watchActivity(); // in-app manager-change toasts
+  initDistrictChecklist(); // item 17
+  watchTeamAlerts();       // item 12
 
-  /* Login is validated against the embedded TEAM_USERS list. initAuth() restores a
-     saved session if there is one, otherwise the splash/login screen is shown. */
+  /* Load the live roster from users.csv first so roles, regions and districts
+     are known before we restore a session or validate a login. If the fetch
+     fails, the built-in fallback roster is used. */
   showSplash();
-  initAuth();
+  loadUsersCsv().then(()=>{ initAuth(); }).catch(()=>{ initAuth(); });
 }
 
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
