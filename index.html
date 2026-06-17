@@ -687,6 +687,46 @@
     .feeling-row button:hover{ transform:translateY(-1px); border-color:var(--accent-line); }
     .feeling-row button.sel{ border-color:#fff; box-shadow:0 0 0 2px var(--accent); }
     .feed-item.feeling{ background:linear-gradient(135deg, rgba(94,224,208,.12), rgba(61,169,252,.10)); border-color:var(--accent-line); }
+
+    /* ===== Batch 4 ===== */
+    /* Safety manual viewer (item 18) */
+    .safety-doc{ margin-top:12px; }
+    .safety-doc img{ width:100%; border-radius:var(--radius-sm); border:1px solid var(--line); margin-bottom:10px; cursor:zoom-in; }
+    .safety-link{ display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border-radius:var(--radius-sm);
+      background:var(--accent-soft); border:1px solid var(--accent-line); color:var(--heading); font-weight:700;
+      text-decoration:none; font-size:.9rem; }
+    .safety-link:hover{ filter:brightness(1.1); }
+    .safety-meta{ font-size:.74rem; color:var(--faint); margin-top:8px; }
+
+    /* Store issues (item 10) */
+    .issue-row{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line-soft); }
+    .issue-row:last-child{ border-bottom:none; }
+    .issue-row .ic{ flex:0 0 auto; font-size:1.1rem; }
+    .issue-row .ib{ flex:1; min-width:0; }
+    .issue-row .ib .it{ font-size:.86rem; color:var(--text); word-wrap:break-word; }
+    .issue-row .ib .im{ font-size:.7rem; color:var(--faint); margin-top:3px; }
+    .issue-row .idel{ flex:0 0 auto; border:none; background:transparent; color:var(--muted); cursor:pointer;
+      font-size:.85rem; padding:4px 6px; border-radius:6px; }
+    .issue-row .idel:hover{ color:var(--bad); background:rgba(240,106,106,.12); }
+    .issue-empty{ color:var(--muted); font-size:.82rem; padding:6px 0; }
+
+    /* Care & ID editing (item 13-care) */
+    .care-admin-bar{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+    .care-edit-grid{ display:grid; gap:10px; grid-template-columns:1fr; }
+    @media(min-width:520px){ .care-edit-grid.two{ grid-template-columns:1fr 1fr; } }
+    .care-edit-img{ width:100%; max-height:180px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--line); margin-bottom:8px; background:var(--panel-2); }
+    .modal .card-edit-actions{ display:flex; gap:8px; justify-content:space-between; margin-top:18px; flex-wrap:wrap; }
+
+    /* ===== Batch 5 ===== */
+    #sproutMic.listening{ background:var(--bad); border-color:var(--bad); color:#fff; animation:pulse-mic 1.2s infinite; }
+    @keyframes pulse-mic{ 0%,100%{ box-shadow:0 0 0 0 rgba(240,106,106,.5); } 50%{ box-shadow:0 0 0 6px rgba(240,106,106,0); } }
+    .sprout-action{ margin-top:8px; padding:11px 13px; border-radius:12px; border:1px solid var(--accent-line);
+      background:var(--accent-soft); }
+    .sprout-action .sa-title{ font-weight:800; color:var(--heading); font-size:.86rem; margin-bottom:4px; }
+    .sprout-action .sa-detail{ font-size:.82rem; color:var(--text); white-space:pre-wrap; }
+    .sprout-action .sa-actions{ display:flex; gap:8px; margin-top:10px; }
+    .sprout-action .sa-actions button{ padding:7px 13px; font-size:.82rem; min-height:auto; }
+    .identify-loading{ display:flex; align-items:center; gap:8px; color:var(--muted); font-size:.86rem; }
   </style>
 </head>
 <body>
@@ -743,6 +783,7 @@
         <div class="user-chip">
           <span class="dot"></span>
           <span id="userName">User</span>
+          <button id="btnEnablePush" type="button" title="Enable phone alerts">🔔</button>
           <button id="btnPostBanner" type="button" title="Post a team-wide notice" class="hidden">📢</button>
           <button id="editSpriteBtn" type="button" title="Edit your map sprite">🎨</button>
           <button id="mgrBtn" type="button" title="Manager tools" class="hidden">🛡</button>
@@ -842,6 +883,14 @@
             <div id="adminBar" class="hidden" style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <button id="btnAddItem" class="btn btn-primary" type="button" style="padding:8px 14px;font-size:.82rem;min-height:auto;flex:1;">＋ Add item</button>
               <button id="btnDoneEditing" class="btn btn-ghost" type="button" style="padding:8px 14px;font-size:.82rem;min-height:auto;">Done</button>
+            </div>
+
+            <div id="spIssuesWrap" class="hidden" style="margin-top:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <span class="field-label" style="margin:0;">⚠️ Issues</span>
+                <button id="btnAddIssue" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">＋ Add issue</button>
+              </div>
+              <div id="spIssues" style="margin-top:8px;"></div>
             </div>
           </aside>
         </div>
@@ -953,27 +1002,40 @@
             </div>
           </div>
         </div>
-        <div class="head"><h2>Care &amp; Identification</h2><p>Care reference for houseplants and perennials, plus pest identification. Tap any item for full details.</p></div>
+        <div class="head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div><h2>Care &amp; Identification</h2><p>Care reference for houseplants and perennials, plus pest identification. Tap any item for full details.</p></div>
+          <button id="btnIdentify" class="btn btn-primary" type="button" style="flex:0 0 auto;">📸 Identify a plant</button>
+        </div>
+        <input id="identifyFile" type="file" accept="image/*" capture="environment" class="hidden" />
         <div class="subnav">
           <button class="active" data-careid="house" type="button">Houseplant Care</button>
           <button data-careid="perennial" type="button">Perennial Care</button>
           <button data-careid="pest" type="button">Pest ID</button>
         </div>
         <div id="careid-house">
-          <div class="search-box" style="max-width:360px;margin-bottom:14px;">
-            <span class="ico">🔎</span><input id="houseSearch" type="search" placeholder="Search houseplants…" />
+          <div class="care-admin-bar">
+            <div class="search-box" style="flex:1;max-width:360px;">
+              <span class="ico">🔎</span><input id="houseSearch" type="search" placeholder="Search houseplants…" />
+            </div>
+            <button id="careAddHouse" class="btn btn-ghost hidden" type="button" style="min-height:auto;">＋ Add plant</button>
           </div>
           <div id="houseGrid" class="grid"><p style="color:var(--muted)">Loading houseplants…</p></div>
         </div>
         <div id="careid-perennial" class="hidden">
-          <div class="search-box" style="max-width:360px;margin-bottom:14px;">
-            <span class="ico">🔎</span><input id="perennialSearch" type="search" placeholder="Search perennials…" />
+          <div class="care-admin-bar">
+            <div class="search-box" style="flex:1;max-width:360px;">
+              <span class="ico">🔎</span><input id="perennialSearch" type="search" placeholder="Search perennials…" />
+            </div>
+            <button id="careAddPerennial" class="btn btn-ghost hidden" type="button" style="min-height:auto;">＋ Add plant</button>
           </div>
           <div id="perennialGrid" class="grid"><p style="color:var(--muted)">Loading perennials…</p></div>
         </div>
         <div id="careid-pest" class="hidden">
-          <div class="search-box" style="max-width:360px;margin-bottom:14px;">
-            <span class="ico">🔎</span><input id="pestSearch" type="search" placeholder="Search pests…" />
+          <div class="care-admin-bar">
+            <div class="search-box" style="flex:1;max-width:360px;">
+              <span class="ico">🔎</span><input id="pestSearch" type="search" placeholder="Search pests…" />
+            </div>
+            <button id="careAddPest" class="btn btn-ghost hidden" type="button" style="min-height:auto;">＋ Add pest</button>
           </div>
           <div id="pestGrid" class="grid"><p style="color:var(--muted)">Loading pests…</p></div>
         </div>
@@ -1000,6 +1062,7 @@
           <button class="active" data-ops="hpa" type="button">Indoor Guidelines</button>
           <button data-ops="hf" type="button">Outdoor Guidelines</button>
           <button data-ops="district" type="button">📋 District Checklist</button>
+          <button data-ops="safety" type="button">🦺 Safety</button>
           <button id="opsAirInc" type="button">🔗 Air Inc</button>
         </div>
         <div id="ops-hpa"><div id="guide-hpa"></div></div>
@@ -1015,11 +1078,79 @@
           </div>
           <div id="districtChecklist"></div>
         </div>
+        <div id="ops-safety" class="hidden">
+          <div class="info-banner" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div><h4>Safety Manual</h4><p>The current safety manual for the team. Managers can upload a new version.</p></div>
+            <div style="display:flex;gap:8px;">
+              <input id="safetyFile" type="file" accept="application/pdf,image/*" class="hidden" />
+              <button id="btnUploadSafety" class="btn btn-ghost hidden" type="button" style="padding:6px 12px;font-size:.8rem;min-height:auto;">⬆ Upload manual</button>
+              <button id="btnRemoveSafety" class="btn btn-ghost hidden" type="button" style="padding:6px 12px;font-size:.8rem;min-height:auto;color:var(--bad);">Remove</button>
+            </div>
+          </div>
+          <div id="safetyViewer"></div>
+        </div>
       </section>
 
       <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Operations</div>
     </div>
   </div>
+
+  <div id="identifyModal" class="modal-back"><div class="modal">
+    <h3>📸 Plant identifier</h3>
+    <div class="latin">AI best guess — always verify before acting on it.</div>
+    <img id="identifyImg" class="care-edit-img" alt="" style="display:none;margin-top:10px;" />
+    <div id="identifyResult" style="margin-top:12px;color:var(--text);font-size:.9rem;line-height:1.5;"></div>
+    <div class="modal-actions"><button class="btn btn-primary" data-close="identifyModal" type="button">Close</button></div>
+  </div></div>
+
+  <div id="careEditor" class="modal-back"><div class="modal">
+    <h3 id="careEditTitle">Edit entry</h3>
+    <div class="latin">Changes are shared with the whole team.</div>
+    <img id="ceImg" class="care-edit-img" alt="" style="display:none;" />
+    <input id="ceImgFile" type="file" accept="image/*" class="hidden" />
+    <button id="ceImgBtn" class="btn btn-ghost" type="button" style="width:100%;margin-bottom:10px;">📷 Set / change photo</button>
+    <div class="care-edit-grid two">
+      <div class="fld"><label class="field-label" for="ceCommon">Common name</label><input id="ceCommon" type="text" /></div>
+      <div class="fld"><label class="field-label" for="ceSci">Scientific name</label><input id="ceSci" type="text" /></div>
+    </div>
+    <div id="cePlantFields">
+      <div class="care-edit-grid two">
+        <div class="fld"><label class="field-label" for="ceLight">Light</label><input id="ceLight" type="text" /></div>
+        <div class="fld"><label class="field-label" for="ceWater">Water</label><input id="ceWater" type="text" /></div>
+        <div class="fld"><label class="field-label" for="ceHum">Humidity</label><input id="ceHum" type="text" /></div>
+        <div class="fld"><label class="field-label" for="ceTemp">Temperature</label><input id="ceTemp" type="text" /></div>
+        <div class="fld"><label class="field-label" for="ceSoil">Soil</label><input id="ceSoil" type="text" /></div>
+        <div class="fld"><label class="field-label" for="ceFert">Fertilizer</label><input id="ceFert" type="text" /></div>
+      </div>
+      <div class="fld"><label class="field-label" for="ceTox">Toxicity</label><input id="ceTox" type="text" /></div>
+      <div class="fld"><label class="field-label" for="ceTips">Extra tips</label><textarea id="ceTips"></textarea></div>
+    </div>
+    <div id="cePestFields" class="hidden">
+      <div class="fld"><label class="field-label" for="ceLooks">What they look like</label><textarea id="ceLooks"></textarea></div>
+      <div class="fld"><label class="field-label" for="ceIdent">Identification</label><textarea id="ceIdent"></textarea></div>
+      <div class="fld"><label class="field-label" for="cePrev">Prevention</label><textarea id="cePrev"></textarea></div>
+      <div class="fld"><label class="field-label" for="ceTreat">Treatment</label><textarea id="ceTreat"></textarea></div>
+    </div>
+    <div class="card-edit-actions">
+      <button id="ceDelete" class="btn btn-ghost hidden" type="button" style="color:var(--bad);">Delete</button>
+      <span style="display:flex;gap:8px;margin-left:auto;">
+        <button class="btn btn-ghost" data-close="careEditor" type="button">Cancel</button>
+        <button id="ceSave" class="btn btn-primary" type="button">Save</button>
+      </span>
+    </div>
+  </div></div>
+
+  <div id="issueEditor" class="modal-back"><div class="modal">
+    <h3>Report an issue</h3>
+    <div class="latin" id="issueStoreLabel">Log an issue for this store.</div>
+    <div class="fld"><label class="field-label" for="issueDate">Date of issue</label><input id="issueDate" type="date" /></div>
+    <div class="fld"><label class="field-label" for="issueText">What's the issue?</label>
+      <textarea id="issueText" placeholder="e.g. Pod 3 has cold-damaged product that needs pulling"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="issueEditor" type="button">Cancel</button>
+      <button id="issueSave" class="btn btn-primary" type="button">Save issue</button>
+    </div>
+  </div></div>
 
   <!-- ===== MODALS ===== -->
   <div id="skuModal" class="modal-back"><div class="modal">
@@ -1298,6 +1429,7 @@
       <div id="sproutLog" class="hub-log sprout-log"></div>
       <div id="sproutChips" class="chips"></div>
       <div class="hub-input">
+        <button id="sproutMic" class="btn btn-ghost hidden" type="button" title="Speak to Sprout" style="flex:0 0 auto;padding:10px 12px;">🎤</button>
         <input id="sproutInput" type="text" placeholder="Ask Sprout Bot anything…" />
         <button id="sproutSend" class="btn btn-primary" type="button">Send</button>
       </div>
@@ -1316,6 +1448,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getDatabase, ref, onValue, set, update, push, remove, get, child, serverTimestamp, goOnline, onDisconnect
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 /* ---------- Firebase config ---------- */
 const firebaseConfig = {
@@ -1328,7 +1461,13 @@ const firebaseConfig = {
   appId: "1:24804620954:web:a31d9e25aced43f4aabd23"
 };
 
-let db = null, fbApp = null;
+/* Your Web Push certificate key pair (VAPID public key). Generate it in the
+   Firebase console: Project settings → Cloud Messaging → Web Push certificates.
+   Paste the key string between the quotes below. Until you do, the 🔔 button will
+   explain that push isn't configured yet. */
+const VAPID_KEY = "BGzGK9qDmcktXXGMqcTPS-YnlfDkdbyLqJG2yWZgCvfXSqhrRKntFm6W9kI0cSF2sC0Ty8Cg-e4PwZE9JF1T2YY";
+
+let db = null, fbApp = null, fbMessaging = null;
 try {
   fbApp = initializeApp(firebaseConfig);
   db = getDatabase(fbApp);
@@ -1730,6 +1869,9 @@ function applyAdminUI(){
   // managers can post team banners (items 5 & 6)
   const pb=$("btnPostBanner"); if(pb) pb.classList.toggle("hidden", !me.isManager);
   if(typeof renderBanners==="function") renderBanners();   // refresh delete buttons by role
+  if(typeof applyCareAdminBars==="function") applyCareAdminBars();   // item 13-care add buttons
+  if(typeof rerenderCare==="function") rerenderCare();              // show/hide per-card edit buttons
+  if(typeof renderSafety==="function" && curView==="ops") renderSafety();
   if(typeof renderChecklistPanel==="function") renderChecklistPanel();
 }
 
@@ -2337,18 +2479,28 @@ async function fetchWikiImage(p){
   return null;
 }
 
+function careKindFromGrid(gridId){
+  if(gridId==="houseGrid") return "house";
+  if(gridId==="perennialGrid") return "perennial";
+  if(gridId==="pestGrid") return "pest";
+  return "house";
+}
 function renderCareGrid(list, gridId){
-  const grid=$(gridId); grid.innerHTML="";
+  const grid=$(gridId); if(!grid) return; grid.innerHTML="";
+  const kind=careKindFromGrid(gridId);
   if(!list.length){ grid.innerHTML='<p style="color:var(--muted)">No data found.</p>'; return; }
   list.forEach(p=>{
     const b=document.createElement("button"); b.className="card card-photo"; b.type="button";
-    b.innerHTML=`<img class="card-thumb" alt="" loading="lazy" style="display:none">
+    const editBtn = me.isManager ? `<span class="pill" style="cursor:pointer;background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);" data-care-edit="1">✎ Edit</span>` : "";
+    b.innerHTML=`<img class="card-thumb" alt="" loading="lazy" style="display:none">${editBtn}
       <div class="title">${esc(p.commonName)}</div><div class="meta">${esc(p.scientificName||"")}</div>`;
     const thumb=b.querySelector("img.card-thumb");
-    // fetch the correct lead image for this species, then show it
-    fetchWikiImage(p).then(src=>{
-      if(src){ p._img=src; thumb.src=src; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; }
-    });
+    /* Manager-set image wins; otherwise fall back to the Wikipedia lookup. */
+    if(p.image){ p._img=p.image; thumb.src=p.image; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; }
+    else fetchWikiImage(p).then(src=>{ if(src){ p._img=src; thumb.src=src; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; } });
+    /* Manager edit button */
+    const eb=b.querySelector("[data-care-edit]");
+    if(eb) eb.addEventListener("click",(e)=>{ e.stopPropagation(); openCareEditor(kind, p); });
     b.addEventListener("click",()=>{
       $("mCareName").textContent=p.commonName||""; $("mCareLatin").textContent=p.scientificName||"";
       $("mLight").textContent=p.light||""; $("mWater").textContent=p.water||""; $("mHumidity").textContent=p.humidity||"";
@@ -2356,30 +2508,32 @@ function renderCareGrid(list, gridId){
       $("mTox").textContent=p.toxicity||""; $("mTips").textContent=p.tips||"";
       const img=$("mCareImg");
       const show=(src)=>{ if(src){ img.src=src; img.alt=p.commonName||""; img.style.display=""; img.onerror=()=>{img.style.display="none";}; } else img.style.display="none"; };
-      if(p._img) show(p._img); else { img.style.display="none"; fetchWikiImage(p).then(s=>{ p._img=s; show(s); }); }
+      if(p.image) show(p.image); else if(p._img) show(p._img); else { img.style.display="none"; fetchWikiImage(p).then(s=>{ p._img=s; show(s); }); }
       openModal("careModal");
     });
     grid.appendChild(b);
   });
 }
 function renderPestGrid(list, gridId){
-  const grid=$(gridId); grid.innerHTML="";
+  const grid=$(gridId); if(!grid) return; grid.innerHTML="";
   if(!list.length){ grid.innerHTML='<p style="color:var(--muted)">No data found.</p>'; return; }
   list.forEach(p=>{
     const b=document.createElement("button"); b.className="card card-photo"; b.type="button";
-    b.innerHTML=`<img class="card-thumb" alt="" loading="lazy" style="display:none">
+    const editBtn = me.isManager ? `<span class="pill" style="cursor:pointer;background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);" data-care-edit="1">✎ Edit</span>` : "";
+    b.innerHTML=`<img class="card-thumb" alt="" loading="lazy" style="display:none">${editBtn}
       <div class="title">${esc(p.commonName)}</div><div class="meta">${esc(p.scientificName||"")}</div>`;
     const thumb=b.querySelector("img.card-thumb");
-    fetchWikiImage(p).then(src=>{
-      if(src){ p._img=src; thumb.src=src; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; }
-    });
+    if(p.image){ p._img=p.image; thumb.src=p.image; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; }
+    else fetchWikiImage(p).then(src=>{ if(src){ p._img=src; thumb.src=src; thumb.style.display=""; thumb.onerror=()=>{thumb.style.display="none";}; } });
+    const eb=b.querySelector("[data-care-edit]");
+    if(eb) eb.addEventListener("click",(e)=>{ e.stopPropagation(); openCareEditor("pest", p); });
     b.addEventListener("click",()=>{
       $("mPestName").textContent=p.commonName||""; $("mPestLatin").textContent=p.scientificName||"";
       $("mLooks").textContent=p.looksLike||""; $("mPestId").textContent=p.identification||"";
       $("mPrev").textContent=p.prevention||""; $("mTreat").textContent=p.treatment||"";
       const img=$("mPestImg");
       const show=(src)=>{ if(src){ img.src=src; img.alt=p.commonName||""; img.style.display=""; img.onerror=()=>{img.style.display="none";}; } else img.style.display="none"; };
-      if(p._img) show(p._img); else { img.style.display="none"; fetchWikiImage(p).then(s=>{ p._img=s; show(s); }); }
+      if(p.image) show(p.image); else if(p._img) show(p._img); else { img.style.display="none"; fetchWikiImage(p).then(s=>{ p._img=s; show(s); }); }
       openModal("pestModal");
     });
     grid.appendChild(b);
@@ -2393,15 +2547,17 @@ function initCareId(){
   $("houseSearch").addEventListener("input",()=>filterCards($("houseSearch"),$("houseGrid")));
   $("perennialSearch").addEventListener("input",()=>filterCards($("perennialSearch"),$("perennialGrid")));
   $("pestSearch").addEventListener("input",()=>filterCards($("pestSearch"),$("pestGrid")));
-  renderCareGrid(HOUSEPLANTS, "houseGrid");
-  renderCareGrid(PERENNIALS, "perennialGrid");
-  renderPestGrid(PESTS, "pestGrid");
+  /* Render via the merged lists so overrides + added entries appear. */
+  renderCareGrid(mergedCareList("house"), "houseGrid");
+  renderCareGrid(mergedCareList("perennial"), "perennialGrid");
+  renderPestGrid(mergedCareList("pest"), "pestGrid");
 }
 
 /* ============================================================
    STORE OPS — Guidelines (HPA + HF), live & admin-editable
    ============================================================ */
 let guidelines = { hpa:"", hf:"" };
+let guidelineImages = { hpa:[], hf:[] };
 let editingGuide = null;
 
 const DEFAULT_GUIDELINES = {
@@ -2461,26 +2617,64 @@ function renderGuidelines(){
   ["hpa","hf"].forEach(key=>{
     const panel=$("guide-"+key);
     if(!panel) return;
+    const imgs = (guidelineImages[key]||[]);
     if(editingGuide===key){
+      const thumbs = imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;">
+          <img src="${esc(src)}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--line);">
+          <button data-guide-img-del="${i}" type="button" title="Remove image" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:none;background:var(--bad);color:#fff;cursor:pointer;font-size:.9rem;line-height:1;">×</button>
+        </div>`).join("");
       panel.innerHTML=`
         <div class="guide-editor">
           <label class="field-label" for="guideTextarea">${key==="hpa"?"Indoor":"Outdoor"} Guidelines — plain text. Put section names in CAPS; start list items with •</label>
           <textarea id="guideTextarea" class="guide-textarea">${esc(guidelines[key]||"")}</textarea>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+          <div style="margin-top:12px;">
+            <label class="field-label">Images</label>
+            <div id="guideImgThumbs" style="display:flex;flex-wrap:wrap;">${thumbs||'<span style="color:var(--faint);font-size:.82rem;">No images yet.</span>'}</div>
+            <input id="guideImgFile" type="file" accept="image/*" class="hidden">
+            <button class="btn btn-ghost" data-guide-img-add type="button" style="margin-top:8px;padding:6px 12px;font-size:.8rem;min-height:auto;">📷 Add image</button>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
             <button class="btn btn-ghost" data-guide-cancel type="button">Cancel</button>
             <button class="btn btn-primary" data-guide-save="${key}" type="button">Save guidelines</button>
           </div>
         </div>`;
       panel.querySelector("[data-guide-cancel]").addEventListener("click",()=>{ editingGuide=null; renderGuidelines(); });
+      panel.querySelector("[data-guide-add]")?.addEventListener?.("click",()=>{});
+      /* add-image */
+      panel.querySelector("[data-guide-img-add]").addEventListener("click",()=> panel.querySelector("#guideImgFile").click());
+      panel.querySelector("#guideImgFile").addEventListener("change", async (e)=>{
+        const file=e.target.files && e.target.files[0]; e.target.value="";
+        if(!file) return;
+        try{
+          const data=await compressImage(file, 1200, 0.7);
+          guidelineImages[key]=(guidelineImages[key]||[]).concat([data]);
+          renderGuidelines();   // re-render editor with the new thumb (text is re-read on save)
+          /* preserve the in-progress text edit */
+          editingGuide=key;
+        }catch(err){ console.error(err); alert("Couldn't read that image."); }
+      });
+      /* delete-image */
+      panel.querySelectorAll("[data-guide-img-del]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const i=parseInt(btn.dataset.guideImgDel,10);
+          guidelineImages[key]=(guidelineImages[key]||[]).filter((_,idx)=>idx!==i);
+          renderGuidelines();
+        });
+      });
       panel.querySelector("[data-guide-save]").addEventListener("click",()=>{
         guidelines[key]=panel.querySelector("#guideTextarea").value;
-        if(db) set(ref(db,`guidelines/${key}`), guidelines[key]).catch(console.error);
+        if(db){
+          set(ref(db,`guidelines/${key}`), guidelines[key]).catch(console.error);
+          set(ref(db,`guidelineImages/${key}`), guidelineImages[key]||[]).catch(console.error);
+        }
         if(typeof notifyManagerChange==="function") notifyManagerChange(`updated the ${key==="hpa"?"Indoor":"Outdoor"} guidelines`);
         editingGuide=null;
         renderGuidelines();
       });
       setTimeout(()=>panel.querySelector("#guideTextarea")?.focus(),0);
     } else {
+      const imgHtml = imgs.length
+        ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">`+imgs.map(src=>`<img src="${esc(src)}" style="width:100%;max-width:280px;border-radius:var(--radius-sm);border:1px solid var(--line);cursor:zoom-in;" data-guide-img>`).join("")+`</div>` : "";
       panel.innerHTML=`
         <div class="guide-head">
           <div class="info-banner" style="flex:1;margin:0;">
@@ -2489,11 +2683,12 @@ function renderGuidelines(){
           </div>
           <button class="btn btn-ghost" data-guide-edit="${key}" type="button" style="padding:6px 12px;font-size:.8rem;min-height:auto;">✎ Edit</button>
         </div>
-        <div class="guide-body">${guidelinesToHtml(guidelines[key])}</div>`;
+        <div class="guide-body">${guidelinesToHtml(guidelines[key])}${imgHtml}</div>`;
       panel.querySelector("[data-guide-edit]").addEventListener("click",()=>{
         if(!requireManager("edit guidelines")) return;
         editingGuide=key; renderGuidelines();
       });
+      panel.querySelectorAll("[data-guide-img]").forEach(im=> im.addEventListener("click",()=>openLightbox(im.src)));
     }
   });
 }
@@ -2508,6 +2703,11 @@ function initGuidelines(){
         if(typeof val==="string" && val.trim()){ guidelines[key]=val; }
         if(editingGuide!==key) renderGuidelines();
       }, err=>console.error("guidelines read:",err));
+      onValue(ref(db,`guidelineImages/${key}`), snap=>{
+        const val=snap.val();
+        guidelineImages[key]=Array.isArray(val)?val.filter(Boolean):(val?Object.values(val).filter(Boolean):[]);
+        if(editingGuide!==key) renderGuidelines();
+      }, err=>console.error("guidelineImages read:",err));
     });
   }
 }
@@ -2717,12 +2917,18 @@ function storeStatus(store){
 
 function makeIcon(store){
   const pct = Math.round(completion(store)*100);
+  const hasIssue = (typeof storeHasIssues==="function") && storeHasIssues(store.id);
+  const issueDot = hasIssue
+    ? `<div title="Open issue" style="position:absolute;top:1px;right:0;width:11px;height:11px;border-radius:50%;
+        background:#f0353a;border:2px solid #fff;box-shadow:0 0 6px #f0353a,0 1px 3px rgba(0,0,0,.6);z-index:2;"></div>`
+    : "";
   return L.divIcon({
     className:"",
     html:`<div style="position:relative;width:30px;height:30px;">
       <div style="width:20px;height:20px;border-radius:50%;background:${statusColor(storeStatus(store))};
         border:2px solid rgba(255,255,255,.9);box-shadow:0 0 10px ${statusColor(storeStatus(store))},0 2px 8px rgba(0,0,0,.6);
         position:absolute;top:5px;left:5px;"></div>
+      ${issueDot}
       <div style="position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);
         font-size:9px;font-weight:800;color:#eef3ff;text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;">${pct}%</div>
     </div>`,
@@ -2816,6 +3022,8 @@ function selectStore(id){
   setVis($("spProgressWrap"), true);
   renderAssignRow(id);
   renderChecklistPanel();
+  setVis($("spIssuesWrap"), true);
+  renderIssuesPanel();
   if(map && markers[id]){ map.panTo([s.lat,s.lng]); markers[id].openPopup(); }
   $("spTitle").focus();
 }
@@ -3697,8 +3905,31 @@ function localAnswer(qRaw){
   return null;
 }
 
+/* Sprout can propose ONE structured action per reply. The user must tap Confirm,
+   and the action only applies if their role permits it. Supported actions:
+   edit_guideline, add_checklist_item, add_district_task, add_store_issue. */
+function sproutSystemPrompt(){
+  const role=(me.role||"user").toUpperCase();
+  const scope=myScopeDistricts();
+  const scopeTxt = scope===null ? "all districts" : (scope.length? ("districts "+scope.join(", ")) : "no districts");
+  return [
+"You are Sprout Bot, a friendly assistant inside the HF-HPA Merchandising Hub — an internal tool for Home Depot houseplant-area field merchandising teams.",
+"Help with plant care, pest ID, merchandising, store visits, damage claims, and general questions. Keep answers concise and practical.",
+"",
+"The current user is "+(me.name||"a user")+", role "+role+", with edit scope over "+scopeTxt+".",
+"",
+"You may PROPOSE one change when the user clearly asks you to change something in the app. You never apply changes yourself — the user must confirm, and the app enforces permissions. Only propose a change if the user is a manager-type role (VP, Director, RMM1, RMM2, HPA, HF, DM).",
+"To propose a change, end your reply with a single line starting with @@ACTION@@ followed by compact JSON. Supported actions:",
+'  {"type":"edit_guideline","key":"hpa"|"hf","text":"full new guideline text"}',
+'  {"type":"add_checklist_item","text":"item text"}            (adds to the shared store checklist)',
+'  {"type":"add_district_task","district":"3","text":"task"}   (adds a task to a district checklist)',
+'  {"type":"add_store_issue","storeId":"1851","text":"issue","date":"YYYY-MM-DD"}',
+"Put a short human sentence before the @@ACTION@@ line describing what you'll do. If the user is just asking a question, do NOT include an action line.",
+"Do not invent store numbers or districts that weren't mentioned; if unsure, ask instead of proposing."
+  ].join("\n");
+}
 async function claudeAnswer(question){
-  const system = "You are Sprout Bot, a friendly assistant inside the HF-HPA Merchandising Hub — an internal tool for Home Depot houseplant-area (HPA) field merchandising teams. Help with plant care, pest ID, merchandising, store visits, damage claims, and general questions. Keep answers concise and practical. If a question is outside houseplant/retail work, still help briefly and kindly.";
+  const system = sproutSystemPrompt();
   const messages = sprout.history.concat([{ role:"user", content:question }]);
   const res = await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
@@ -3714,12 +3945,113 @@ async function claudeAnswer(question){
   return text || "I'm not sure how to answer that one.";
 }
 
+/* Split a Sprout reply into prose + an optional proposed action. */
+function parseSproutAction(text){
+  const idx=text.indexOf("@@ACTION@@");
+  if(idx<0) return { prose:text, action:null };
+  const prose=text.slice(0,idx).trim();
+  const jsonStr=text.slice(idx+"@@ACTION@@".length).trim();
+  let action=null;
+  try{ action=JSON.parse(jsonStr); }catch(e){ try{ action=JSON.parse(jsonStr.replace(/```json|```/g,"").trim()); }catch(e2){ action=null; } }
+  return { prose, action };
+}
+
+/* Describe a proposed action in plain words + whether THIS user may do it. */
+function describeAction(a){
+  if(!a||!a.type) return null;
+  if(!me.isManager) return { ok:false, title:"Change not allowed", detail:"Only managers can make changes." };
+  switch(a.type){
+    case "edit_guideline":{
+      const k=(a.key==="hf")?"hf":"hpa";
+      return { ok:true, title:"Edit "+(k==="hpa"?"Indoor":"Outdoor")+" guidelines",
+               detail:"Replace the guideline text with:\n\n"+(a.text||"").slice(0,400)+((a.text||"").length>400?"…":"") };
+    }
+    case "add_checklist_item":
+      return { ok:true, title:"Add a store checklist item", detail:"“"+(a.text||"")+"”" };
+    case "add_district_task":{
+      const d=String(a.district||"");
+      if(!canActOnDistrict(d)) return { ok:false, title:"Out of scope", detail:"District "+d+" is outside your scope." };
+      return { ok:true, title:"Add a task to District "+d, detail:"“"+(a.text||"")+"”" };
+    }
+    case "add_store_issue":{
+      const sid=String(a.storeId||"");
+      if(!stores[sid]) return { ok:false, title:"Unknown store", detail:"Store #"+sid+" isn't on the map." };
+      return { ok:true, title:"Add an issue to store #"+sid, detail:"“"+(a.text||"")+"” ("+(a.date||todayKey())+")" };
+    }
+    default: return { ok:false, title:"Unsupported action", detail:"Sprout proposed something I can't apply." };
+  }
+}
+/* Apply a confirmed action (re-checks permission). */
+function applySproutAction(a){
+  const d=describeAction(a);
+  if(!d || !d.ok){ botPush("Sorry — I can't apply that change for your role.","bot"); return; }
+  try{
+    switch(a.type){
+      case "edit_guideline":{
+        const k=(a.key==="hf")?"hf":"hpa";
+        guidelines[k]=a.text||"";
+        if(db) set(ref(db,`guidelines/${k}`), guidelines[k]).catch(console.error);
+        notifyManagerChange(`updated the ${k==="hpa"?"Indoor":"Outdoor"} guidelines (via Sprout)`);
+        if(typeof renderGuidelines==="function") renderGuidelines();
+        break;
+      }
+      case "add_checklist_item":{
+        checklist.push({ id:nextItemId(), text:a.text||"" });
+        persistChecklist();
+        notifyManagerChange("added a checklist item (via Sprout)");
+        if(selected) renderChecklistPanel();
+        break;
+      }
+      case "add_district_task":{
+        const dist=String(a.district||"");
+        districtChecklists[dist]=districtChecklists[dist]||[];
+        districtChecklists[dist].push({ id:nextDistItemId(), text:a.text||"", done:false });
+        persistDistrict(dist);
+        notifyManagerChange(`added a task to the District ${dist} checklist (via Sprout)`);
+        if(curView==="ops") renderDistrictTab();
+        break;
+      }
+      case "add_store_issue":{
+        const sid=String(a.storeId||"");
+        if(db){ const node=push(ref(db,"storeIssues/"+sid)); set(node,{ text:a.text||"", date:a.date||todayKey(), uid:me.uid, name:me.name, ts:Date.now() }).catch(console.error); }
+        break;
+      }
+    }
+    botPush("✅ Done — I've applied that change.","bot");
+  }catch(e){ console.error(e); botPush("Something went wrong applying that change.","bot"); }
+}
+/* Render a confirm card under Sprout's reply. */
+function renderSproutAction(a){
+  const d=describeAction(a);
+  if(!d) return;
+  const log=$("sproutLog");
+  const wrap=document.createElement("div"); wrap.className="msg bot"; wrap.style.maxWidth="92%";
+  if(!d.ok){
+    wrap.innerHTML=`<div class="sprout-action"><div class="sa-title">⛔ ${esc(d.title)}</div><div class="sa-detail">${esc(d.detail)}</div></div>`;
+    log.appendChild(wrap); log.scrollTop=log.scrollHeight; return;
+  }
+  wrap.innerHTML=`<div class="sprout-action">
+    <div class="sa-title">Proposed: ${esc(d.title)}</div>
+    <div class="sa-detail">${esc(d.detail)}</div>
+    <div class="sa-actions">
+      <button class="btn btn-primary" data-sa-confirm type="button">Confirm</button>
+      <button class="btn btn-ghost" data-sa-cancel type="button">Cancel</button>
+    </div>
+  </div>`;
+  const confirm=wrap.querySelector("[data-sa-confirm]");
+  const cancel=wrap.querySelector("[data-sa-cancel]");
+  confirm.addEventListener("click",()=>{ confirm.disabled=true; cancel.disabled=true; applySproutAction(a); });
+  cancel.addEventListener("click",()=>{ wrap.querySelector(".sa-actions").innerHTML='<span style="color:var(--muted);font-size:.8rem;">Cancelled.</span>'; });
+  log.appendChild(wrap); log.scrollTop=log.scrollHeight;
+}
+
 async function sproutAsk(question){
   if(!question.trim()) return;
   botPush(question,"user");
   $("sproutInput").value="";
   $("sproutChips").innerHTML="";
 
+  /* Local answers only handle pure questions (no actions). */
   const local=localAnswer(question);
   if(local){ botPush(local,"bot"); return; }
 
@@ -3727,12 +4059,115 @@ async function sproutAsk(question){
   try{
     const ans=await claudeAnswer(question);
     typing.remove();
-    botPush(esc(ans).replace(/\n/g,"<br>"),"bot");
+    const { prose, action }=parseSproutAction(ans);
+    if(prose) botPush(esc(prose).replace(/\n/g,"<br>"),"bot");
+    if(action) renderSproutAction(action);
   }catch(e){
     console.error(e);
     typing.remove();
     botPush("I couldn't reach the AI service just now. I can still answer questions about plants, pests, SKUs, store status, weather, and HPA protocols from the hub's own data — try asking about one of those.","bot");
   }
+}
+
+/* ----- Voice-to-text for Sprout (item 20) ----- */
+let sproutRecog=null, sproutListening=false;
+function initSproutVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const mic=$("sproutMic");
+  if(!SR || !mic) return;   // unsupported browser → button stays hidden
+  mic.classList.remove("hidden");
+  sproutRecog=new SR();
+  sproutRecog.lang="en-US"; sproutRecog.interimResults=false; sproutRecog.maxAlternatives=1;
+  sproutRecog.addEventListener("result",(e)=>{
+    const t=e.results[0][0].transcript||"";
+    const input=$("sproutInput");
+    input.value=(input.value?input.value+" ":"")+t;
+    input.focus();
+  });
+  sproutRecog.addEventListener("end",()=>{ sproutListening=false; mic.classList.remove("listening"); });
+  sproutRecog.addEventListener("error",(e)=>{ sproutListening=false; mic.classList.remove("listening"); if(e.error==="not-allowed") alert("Microphone access was blocked. Allow it in your browser settings to use voice."); });
+  mic.addEventListener("click",()=>{
+    if(sproutListening){ try{ sproutRecog.stop(); }catch(e){} return; }
+    try{ sproutRecog.start(); sproutListening=true; mic.classList.add("listening"); }catch(e){ console.warn(e); }
+  });
+}
+
+/* ----- Plant identifier (item 21) ----- */
+function initIdentify(){
+  const btn=$("btnIdentify"), file=$("identifyFile");
+  if(!btn||!file) return;
+  btn.addEventListener("click",()=>file.click());
+  file.addEventListener("change", async (e)=>{
+    const f=e.target.files && e.target.files[0]; file.value="";
+    if(!f) return;
+    let dataUrl;
+    try{ dataUrl=await compressImage(f, 1100, 0.8); }catch(err){ alert("Couldn't read that photo."); return; }
+    $("identifyImg").src=dataUrl; $("identifyImg").style.display="";
+    $("identifyResult").innerHTML='<div class="identify-loading"><span class="typing"><span></span><span></span><span></span></span> Identifying…</div>';
+    openModal("identifyModal");
+    try{
+      const result=await identifyPlant(dataUrl);
+      $("identifyResult").innerHTML=esc(result).replace(/\n/g,"<br>");
+    }catch(err){
+      console.error(err);
+      $("identifyResult").innerHTML='Sorry — I couldn\u2019t identify this right now. The AI service may be unavailable. Please try again.';
+    }
+  });
+}
+async function identifyPlant(dataUrl){
+  /* data URL → base64 + media type for the vision API */
+  const m=/^data:(image\/[a-z]+);base64,(.*)$/i.exec(dataUrl||"");
+  const mediaType=m?m[1]:"image/jpeg";
+  const b64=m?m[2]:(dataUrl.split(",")[1]||"");
+  const system="You are a horticultural assistant identifying plants and pests from a photo for a garden-center merchandising team. Give your BEST GUESS, clearly stated as a guess. Format: a likely common name and scientific name, your confidence (low/medium/high), 1-2 key identifying features you see, and one line of basic care or, if it's a pest, basic treatment. Be concise. Always remind the user to verify before acting.";
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514", max_tokens:600, system,
+      messages:[{ role:"user", content:[
+        { type:"image", source:{ type:"base64", media_type:mediaType, data:b64 } },
+        { type:"text", text:"What plant or pest is this? Give your best guess." }
+      ]}]
+    })
+  });
+  if(!res.ok) throw new Error("API "+res.status);
+  const data=await res.json();
+  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+  return text || "I couldn't tell from this photo. Try a clearer, closer shot of the leaves.";
+}
+
+/* ----- Push notifications (item 4, in-page registration) ----- */
+async function enablePush(){
+  if(!("serviceWorker" in navigator)){ alert("This browser doesn't support push notifications."); return; }
+  if(!VAPID_KEY){ alert("Push isn't set up yet. An admin needs to add the Web Push (VAPID) key and deploy the messaging service worker — see PUSH_SETUP.md."); return; }
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){ alert("Notifications were not allowed. You can enable them later in your browser settings."); return; }
+    const reg=await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    if(!fbMessaging) fbMessaging=getMessaging(fbApp);
+    const token=await getToken(fbMessaging, { vapidKey:VAPID_KEY, serviceWorkerRegistration:reg });
+    if(token && db){
+      /* Save this device's token so the Cloud Function can target the user. */
+      await set(ref(db,"pushTokens/"+me.uid+"/"+token.replace(/[.#$\[\]\/]/g,"_")), {
+        token, name:me.name, role:me.role||"", district:(findTeamUser(me.username)||{}).district||"",
+        region:(findTeamUser(me.username)||{}).region||"", ts:Date.now()
+      });
+      showToast("Phone alerts enabled for this device ✅","🔔");
+    }
+    /* Foreground messages → show an in-app toast too. */
+    onMessage(fbMessaging, (payload)=>{
+      const n=(payload && payload.notification)||{};
+      showToast("<b>"+esc(n.title||"Update")+"</b> "+esc(n.body||""), "🔔");
+    });
+  }catch(e){
+    console.error("push enable failed:",e);
+    alert("Couldn't enable push on this device. "+(e&&e.message||""));
+  }
+}
+function initPush(){
+  const b=$("btnEnablePush"); if(!b) return;
+  b.addEventListener("click", enablePush);
 }
 
 /* ============================================================
@@ -4454,12 +4889,289 @@ function watchTeamAlerts(){
 }
 
 /* ============================================================
+   BATCH 4 — Safety manual, store issues, editable Care & ID
+   ============================================================ */
+
+/* ----- Safety manual (item 18) ----- */
+let safetyDoc = null;   // { type:"image"|"link", data/url, name, uploadedBy, ts }
+function renderSafety(){
+  const viewer=$("safetyViewer"); if(!viewer) return;
+  setVis($("btnUploadSafety"), me.isManager);
+  setVis($("btnRemoveSafety"), me.isManager && !!safetyDoc);
+  if(!safetyDoc){
+    viewer.innerHTML='<div class="hub-empty">No safety manual uploaded yet.'+(me.isManager?' Use “Upload manual” to add a PDF link or page images.':'')+'</div>';
+    return;
+  }
+  let inner="";
+  if(safetyDoc.type==="image"){
+    inner=`<div class="safety-doc"><img src="${esc(safetyDoc.data)}" alt="Safety manual"></div>`;
+  } else if(safetyDoc.type==="link"){
+    inner=`<div class="safety-doc"><a class="safety-link" href="${esc(safetyDoc.url)}" target="_blank" rel="noopener">📄 Open the Safety Manual</a></div>`;
+  }
+  inner+=`<div class="safety-meta">Updated by ${esc(safetyDoc.uploadedBy||"a manager")} · ${esc(fmtTime(safetyDoc.ts))}</div>`;
+  viewer.innerHTML=inner;
+  const img=viewer.querySelector(".safety-doc img");
+  if(img) img.addEventListener("click",()=>openLightbox(safetyDoc.data));
+}
+function initSafety(){
+  $("btnUploadSafety").addEventListener("click",()=>{
+    if(!requireManager("upload the safety manual")) return;
+    /* Offer a choice: link (best for PDFs) or image upload. */
+    const useLink = window.confirm("Upload the manual as a LINK (recommended for PDFs)?\n\nOK = paste a link (Drive, SharePoint, GitHub, etc.)\nCancel = upload page image(s) from this device");
+    if(useLink){
+      const url=window.prompt("Paste the link to the safety manual PDF:");
+      if(url && /^https?:\/\//i.test(url.trim())){
+        safetyDoc={ type:"link", url:url.trim(), uploadedBy:me.name, ts:Date.now() };
+        if(db) set(ref(db,"safetyManual"), safetyDoc).catch(console.error);
+        notifyManagerChange("updated the safety manual");
+        renderSafety();
+      } else if(url){ alert("That doesn't look like a valid link (it should start with http:// or https://)."); }
+    } else {
+      $("safetyFile").click();
+    }
+  });
+  $("safetyFile").addEventListener("change", async (e)=>{
+    const file=e.target.files && e.target.files[0]; $("safetyFile").value="";
+    if(!file) return;
+    if(file.type==="application/pdf"){
+      alert("PDFs are too large to store in the database. Please upload the PDF to Drive/SharePoint/GitHub and use the link option instead.");
+      return;
+    }
+    try{
+      const data=await compressImage(file, 1400, 0.7);
+      safetyDoc={ type:"image", data, name:file.name||"manual", uploadedBy:me.name, ts:Date.now() };
+      if(db) set(ref(db,"safetyManual"), safetyDoc).catch(err=>{ console.error(err); alert("Couldn't save — the image may be too large."); });
+      notifyManagerChange("updated the safety manual");
+      renderSafety();
+    }catch(err){ console.error(err); alert("Couldn't read that file."); }
+  });
+  $("btnRemoveSafety").addEventListener("click",()=>{
+    if(!requireManager("remove the safety manual")) return;
+    if(!window.confirm("Remove the current safety manual?")) return;
+    safetyDoc=null;
+    if(db) remove(ref(db,"safetyManual")).catch(console.error);
+    notifyManagerChange("removed the safety manual");
+    renderSafety();
+  });
+  if(db){
+    onValue(ref(db,"safetyManual"), snap=>{ safetyDoc=snap.val()||null; if(curView==="ops") renderSafety(); }, err=>console.error("safety read:",err));
+  }
+}
+
+/* ----- Store issues (item 10) ----- */
+/* Issues live under storeIssues/<storeId>. Anyone can add one; a red dot shows
+   on the store pin while any issue exists. The author or a manager can remove. */
+let storeIssues = {};   // { storeId: { issueId: {text,date,uid,name,ts} } }
+function storeHasIssues(storeId){
+  const m=storeIssues[storeId]; return !!(m && Object.keys(m).length);
+}
+function openIssueEditor(){
+  if(!selected){ return; }
+  $("issueStoreLabel").textContent="Store #"+selected+" — "+(stores[selected]?stores[selected].name:"");
+  $("issueText").value="";
+  $("issueDate").value = todayKey();
+  openModal("issueEditor");
+  setTimeout(()=>$("issueText").focus(),0);
+}
+function saveIssue(){
+  if(!selected || !db){ closeModal("issueEditor"); return; }
+  const text=($("issueText").value||"").trim();
+  const date=($("issueDate").value||"").trim() || todayKey();
+  if(!text){ $("issueText").focus(); return; }
+  const node=push(ref(db,"storeIssues/"+selected));
+  set(node, { text, date, uid:me.uid, name:me.name, ts:Date.now() })
+    .catch(err=>{ console.error(err); alert("Couldn't save the issue: "+(err&&err.message||"error")); });
+  closeModal("issueEditor");
+}
+function deleteIssue(storeId, issueId){
+  const m=storeIssues[storeId]||{};
+  const rec=m[issueId];
+  if(rec && rec.uid!==me.uid && !me.isManager){ alert("Only the person who reported an issue (or a manager) can remove it."); return; }
+  if(!window.confirm("Remove this issue?")) return;
+  if(db) remove(ref(db,"storeIssues/"+storeId+"/"+issueId)).catch(console.error);
+}
+function renderIssuesPanel(){
+  const wrap=$("spIssues"); if(!wrap) return;
+  if(!selected){ wrap.innerHTML=""; return; }
+  const m=storeIssues[selected]||{};
+  const arr=Object.keys(m).map(k=>({ id:k, ...m[k] })).filter(Boolean).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(!arr.length){ wrap.innerHTML='<div class="issue-empty">No issues reported. 🎉</div>'; return; }
+  wrap.innerHTML="";
+  arr.forEach(it=>{
+    const row=document.createElement("div"); row.className="issue-row";
+    const canDel = it.uid===me.uid || me.isManager;
+    row.innerHTML=`<div class="ic">⚠️</div>
+      <div class="ib"><div class="it">${esc(it.text)}</div>
+        <div class="im">${esc(it.date||"")} · ${esc(it.name||"User")}</div></div>
+      ${canDel?`<button class="idel" title="Remove" type="button">🗑</button>`:""}`;
+    if(canDel) row.querySelector(".idel").addEventListener("click",()=>deleteIssue(selected, it.id));
+    wrap.appendChild(row);
+  });
+}
+function initStoreIssues(){
+  $("btnAddIssue").addEventListener("click", openIssueEditor);
+  $("issueSave").addEventListener("click", saveIssue);
+  if(db){
+    onValue(ref(db,"storeIssues"), snap=>{
+      storeIssues = snap.val() || {};
+      refreshAllMarkers();                 // update red dots
+      if(selected) renderIssuesPanel();
+    }, err=>console.error("storeIssues read:",err));
+  }
+}
+
+/* ----- Editable Care & ID (item 13-care) ----- */
+/* Overrides + new entries live under careData/{house|perennial|pest}. The built-in
+   arrays are the defaults; overrides merge on top so managers can edit any field,
+   replace the photo, or add brand-new plants/pests. */
+let careOverrides = { house:{}, perennial:{}, pest:{} };
+let careAdded = { house:[], perennial:[], pest:[] };
+
+function careKeyOf(p){ return normSku(p.commonName||"")+"|"+normSku(p.scientificName||""); }
+function mergedCareList(kind){
+  let base;
+  if(kind==="house") base=HOUSEPLANTS;
+  else if(kind==="perennial") base=PERENNIALS;
+  else base=PESTS;
+  /* apply overrides to base entries (overrides are stored under the encoded key) */
+  const merged = base.map(p=>{
+    const k=careKeyOf(p);
+    const ek=encodeKey(k);
+    const ov = careOverrides[kind][ek] || careOverrides[kind][k];
+    return ov ? { ...p, ...ov, _key:k } : { ...p, _key:k };
+  });
+  /* append manager-added entries */
+  (careAdded[kind]||[]).forEach(p=> merged.push({ ...p, _key:p._key||("added-"+(p.id||Math.random().toString(36).slice(2))) , _added:true }));
+  return merged;
+}
+let careEditing = { kind:null, key:null, isPest:false, imgData:"" };
+function openCareEditor(kind, entry){
+  if(!requireManager("edit Care & ID entries")) return;
+  const isPest = kind==="pest";
+  careEditing = { kind, key: entry?entry._key:null, isPest, imgData: entry?(entry._img||entry.image||""):"" };
+  $("careEditTitle").textContent = entry ? "Edit entry" : (isPest?"Add pest":"Add plant");
+  $("ceCommon").value = entry?entry.commonName||"":"";
+  $("ceSci").value = entry?entry.scientificName||"":"";
+  /* show the relevant field set */
+  setVis($("cePlantFields"), !isPest);
+  setVis($("cePestFields"), isPest);
+  if(isPest){
+    $("ceLooks").value=entry?entry.looksLike||"":"";
+    $("ceIdent").value=entry?entry.identification||"":"";
+    $("cePrev").value=entry?entry.prevention||"":"";
+    $("ceTreat").value=entry?entry.treatment||"":"";
+  } else {
+    $("ceLight").value=entry?entry.light||"":"";
+    $("ceWater").value=entry?entry.water||"":"";
+    $("ceHum").value=entry?entry.humidity||"":"";
+    $("ceTemp").value=entry?entry.temp||"":"";
+    $("ceSoil").value=entry?entry.soil||"":"";
+    $("ceFert").value=entry?entry.fertilizer||"":"";
+    $("ceTox").value=entry?entry.toxicity||"":"";
+    $("ceTips").value=entry?entry.tips||"":"";
+  }
+  paintCareEditImg();
+  setVis($("ceDelete"), !!(entry && entry._added));   // only manager-added entries can be deleted
+  openModal("careEditor");
+}
+function paintCareEditImg(){
+  const img=$("ceImg");
+  if(careEditing.imgData){ img.src=careEditing.imgData; img.style.display=""; }
+  else img.style.display="none";
+}
+function saveCareEntry(){
+  const k=careEditing.kind; if(!k) return;
+  const common=($("ceCommon").value||"").trim();
+  if(!common){ $("ceCommon").focus(); return; }
+  const rec={ commonName:common, scientificName:($("ceSci").value||"").trim() };
+  if(careEditing.imgData) rec.image=careEditing.imgData;
+  if(careEditing.isPest){
+    rec.looksLike=($("ceLooks").value||"").trim();
+    rec.identification=($("ceIdent").value||"").trim();
+    rec.prevention=($("cePrev").value||"").trim();
+    rec.treatment=($("ceTreat").value||"").trim();
+  } else {
+    rec.light=($("ceLight").value||"").trim();
+    rec.water=($("ceWater").value||"").trim();
+    rec.humidity=($("ceHum").value||"").trim();
+    rec.temp=($("ceTemp").value||"").trim();
+    rec.soil=($("ceSoil").value||"").trim();
+    rec.fertilizer=($("ceFert").value||"").trim();
+    rec.toxicity=($("ceTox").value||"").trim();
+    rec.tips=($("ceTips").value||"").trim();
+  }
+  if(careEditing.key && !String(careEditing.key).startsWith("added-")){
+    /* override of a built-in entry */
+    careOverrides[k][careEditing.key]=rec;
+    if(db) set(ref(db,"careData/"+k+"/overrides/"+encodeKey(careEditing.key)), rec).catch(console.error);
+  } else {
+    /* new or edited manager-added entry */
+    rec._key = careEditing.key || ("added-"+Date.now().toString(36));
+    rec.id = rec._key;
+    const idx=(careAdded[k]||[]).findIndex(x=>x._key===rec._key);
+    if(idx>=0) careAdded[k][idx]=rec; else (careAdded[k]=careAdded[k]||[]).push(rec);
+    if(db) set(ref(db,"careData/"+k+"/added/"+rec._key), rec).catch(console.error);
+  }
+  notifyManagerChange((careEditing.isPest?"updated a pest entry":"updated a plant entry")+" ("+common+")");
+  closeModal("careEditor");
+  rerenderCare();
+}
+function deleteCareEntry(){
+  const k=careEditing.kind, key=careEditing.key;
+  if(!k || !key) return;
+  careAdded[k]=(careAdded[k]||[]).filter(x=>x._key!==key);
+  if(db) remove(ref(db,"careData/"+k+"/added/"+key)).catch(console.error);
+  closeModal("careEditor");
+  rerenderCare();
+}
+/* Firebase keys can't contain . # $ [ ] / — encode the care key. */
+function encodeKey(k){ return String(k).replace(/[.#$\[\]\/]/g,"_"); }
+function rerenderCare(){
+  renderCareGrid(mergedCareList("house"), "houseGrid");
+  renderCareGrid(mergedCareList("perennial"), "perennialGrid");
+  renderPestGrid(mergedCareList("pest"), "pestGrid");
+  /* keep the manager add bar visible */
+  applyCareAdminBars();
+}
+function applyCareAdminBars(){
+  ["careAddHouse","careAddPerennial","careAddPest"].forEach(id=>{ const b=$(id); if(b) setVis(b, me.isManager); });
+}
+function initCareEditing(){
+  $("careAddHouse").addEventListener("click",()=>openCareEditor("house",null));
+  $("careAddPerennial").addEventListener("click",()=>openCareEditor("perennial",null));
+  $("careAddPest").addEventListener("click",()=>openCareEditor("pest",null));
+  $("ceSave").addEventListener("click", saveCareEntry);
+  $("ceDelete").addEventListener("click", deleteCareEntry);
+  $("ceImgBtn").addEventListener("click",()=>$("ceImgFile").click());
+  $("ceImgFile").addEventListener("change", async (e)=>{
+    const file=e.target.files && e.target.files[0]; $("ceImgFile").value="";
+    if(!file) return;
+    try{ careEditing.imgData=await compressImage(file, 900, 0.7); paintCareEditImg(); }
+    catch(err){ console.error(err); alert("Couldn't read that image."); }
+  });
+  applyCareAdminBars();
+  if(db){
+    onValue(ref(db,"careData"), snap=>{
+      const val=snap.val()||{};
+      ["house","perennial","pest"].forEach(k=>{
+        careOverrides[k]={};
+        careAdded[k]=[];
+        const node=val[k]||{};
+        if(node.overrides) Object.keys(node.overrides).forEach(ek=>{ careOverrides[k][ek]=node.overrides[ek]; });
+        if(node.added) Object.keys(node.added).forEach(ak=>{ const r=node.added[ak]; r._key=r._key||ak; careAdded[k].push(r); });
+      });
+      rerenderCare();
+    }, err=>console.error("careData read:",err));
+  }
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 function init(){
   wireTabs("products",{skus:"products-skus",orders:"products-orders"},"#view-products");
   wireTabs("careid",{house:"careid-house",perennial:"careid-perennial",pest:"careid-pest"},"#view-careid");
-  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district"},"#view-ops",(key)=>{ if(key==="district") renderDistrictTab(); });
+  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district",safety:"ops-safety"},"#view-ops",(key)=>{ if(key==="district") renderDistrictTab(); if(key==="safety") renderSafety(); });
 
   initGuidelines();
 
@@ -4473,6 +5185,12 @@ function init(){
   watchActivity(); // in-app manager-change toasts
   initDistrictChecklist(); // item 17
   watchTeamAlerts();       // item 12
+  initSafety();            // item 18
+  initStoreIssues();       // item 10
+  initCareEditing();       // item 13-care
+  initSproutVoice();       // item 20 voice-to-text
+  initIdentify();          // item 21 plant identifier
+  initPush();              // item 4 push registration
 
   /* Load the live roster from users.csv first so roles, regions and districts
      are known before we restore a session or validate a login. If the fetch
