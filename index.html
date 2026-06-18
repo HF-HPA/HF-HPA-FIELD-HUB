@@ -1735,6 +1735,7 @@
         <select id="chatDistrict" style="flex:1;min-width:120px;padding:7px 10px;font-size:.85rem;"></select>
         <button id="chatAlertBtn" class="btn btn-ghost hidden" type="button" title="Alert this team" style="padding:7px 11px;font-size:.8rem;min-height:auto;">🚨 Alert</button>
       </div>
+      <div id="chatMembers" style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line-soft);"></div>
       <div id="chatLog" class="hub-log"></div>
       <div class="hub-input">
         <input id="chatInput" type="text" placeholder="Message your team…" />
@@ -1822,6 +1823,9 @@ const GLOBAL_ROLES  = ["vp","director","hpa","hf","manager","admin"];
 const REGION_ROLES  = ["rmm1","rmm2","rmm"];
 /* District-scoped roles (DMs) are limited to their own district. */
 const DISTRICT_ROLES= ["dm"];
+/* Roles restricted to ONLY posting "feelings" in the feed (no text/shout/photo). */
+const FEELING_ONLY_ROLES = ["fss","dm"];
+function feedFeelingOnly(){ return FEELING_ONLY_ROLES.includes((me.role||"").toLowerCase()); }
 
 const roleOf = (rec) => (rec && rec.role ? String(rec.role).trim().toLowerCase() : "");
 /* Parse a comma/space separated list of territory numbers into a clean array of strings. */
@@ -3525,13 +3529,34 @@ function selectStore(id){
 }
 
 /* ----- store assignment (manager-gated) ----- */
+/* Derive the uid the app uses for a username (matches enterApp). */
+function uidForUsername(username){ return "u-"+(username||"anon").toString().toLowerCase().replace(/[^a-z0-9]/g,""); }
+/* Everyone in users.csv as person objects, merged with live presence details. */
+function rosterPeople(){
+  return (TEAM_USERS||[]).map(u=>{
+    const uid=uidForUsername(u.username);
+    const live=(hub.dmPeers||{})[uid];
+    return {
+      uid, username:u.username, name:u.name||u.username, role:(u.role||""),
+      region:u.region||"", district:u.district||"",
+      emoji:(live&&live.emoji)||"🙂", color:(live&&live.color)||"#3da9fc",
+      status:(live&&live.status)||""
+    };
+  }).filter(p=>p.username);
+}
+/* The district(s) a given roster person belongs to (DM/field = their district; RMM = region; global = none-specific). */
+function personDistricts(p){
+  const role=(p.role||"").toLowerCase();
+  if(REGION_ROLES.includes(role)) return parseTerrList(p.region);
+  return parseTerrList(p.district);
+}
+
 function peopleRoster(){
-  // people who've appeared via presence, plus anyone already assigned
-  const map_={};
-  Object.values(hub.dmPeers||{}).forEach(p=>{ if(p && p.uid) map_[p.uid]={uid:p.uid,name:p.name,emoji:p.emoji,color:p.color}; });
-  Object.values(assignments||{}).forEach(a=>{ if(a && a.uid && !map_[a.uid]) map_[a.uid]={uid:a.uid,name:a.name,emoji:a.emoji,color:a.color}; });
-  if(!map_[me.uid]) map_[me.uid]={uid:me.uid,name:me.name,emoji:me.emoji,color:me.color};
-  return Object.values(map_).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  /* Now the FULL team roster from users.csv (assignable whether online or not). */
+  const people=rosterPeople();
+  /* ensure current user is present even if somehow missing from the roster */
+  if(!people.find(p=>p.uid===me.uid)) people.push({ uid:me.uid, name:me.name, emoji:me.emoji, color:me.color, role:me.role||"", region:"", district:"" });
+  return people.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
 }
 function renderAssignRow(id){
   const row=$("spAssign"); if(!row) return;
@@ -5029,6 +5054,11 @@ function openReactionPicker(postId){
 }
 function postFeed(text, kind, photo){
   if(!db) return;
+  /* FSS/DM may only post feelings. */
+  if(feedFeelingOnly() && kind!=="feeling"){
+    alert("Your role can post a feeling to the feed, but not other updates.");
+    return;
+  }
   const t=(text||"").trim();
   if(!t && !photo) return;
   const node=push(ref(db,"feed"));
@@ -5047,10 +5077,11 @@ function postFeed(text, kind, photo){
   });
 }
 function openShoutEditor(){
+  if(feedFeelingOnly()){ alert("Your role can post a feeling to the feed, but not shout-outs."); return; }
   const sel=$("shoutWho"); sel.innerHTML="";
-  const peers=Object.values(hub.dmPeers).filter(p=>p.uid!==me.uid);
+  const peers=rosterPeople().filter(p=>p.uid!==me.uid);
   if(!peers.length){
-    sel.innerHTML='<option value="">No teammates online yet</option>';
+    sel.innerHTML='<option value="">No teammates in the roster</option>';
   } else {
     peers.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(p=>{
       const o=document.createElement("option"); o.value=p.uid; o.textContent=`${p.emoji||"🙂"} ${p.name||"User"}`; sel.appendChild(o);
@@ -5134,6 +5165,7 @@ function openChatRoom(dist){
   chatRoom=dist;
   const log=$("chatLog"); if(log) log.innerHTML='<div class="hub-empty">Loading…</div>';
   setVis($("chatAlertBtn"), me.isManager && chatRoom && canActOnDistrict(chatRoom));
+  renderChatMembers(dist);
   if(db && chatRoom){
     onValue(ref(db,"chatRooms/"+chatRoom), snap=>{
       const val=snap.val()||{};
@@ -5144,6 +5176,23 @@ function openChatRoom(dist){
     if(log) log.innerHTML='<div class="hub-empty">Offline — chat needs the database.</div>';
   }
 }
+/* Show the roster members who belong to this district. */
+function renderChatMembers(dist){
+  const box=$("chatMembers"); if(!box) return;
+  if(!dist){ box.innerHTML=""; return; }
+  const members=rosterPeople().filter(p=>{
+    const role=(p.role||"").toLowerCase();
+    if(GLOBAL_ROLES.includes(role)) return false;          // org-wide roles aren't "in" one district
+    return personDistricts(p).includes(String(dist));
+  });
+  if(!members.length){ box.innerHTML='<span class="gs-hint" style="padding:2px;">No district members listed in the roster.</span>'; return; }
+  box.innerHTML=members.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(p=>{
+    const online=!!(hub.dmPeers||{})[p.uid];
+    return `<span class="chat-member" title="${esc(p.role.toUpperCase())}" style="display:inline-flex;align-items:center;gap:5px;font-size:.76rem;padding:3px 9px;border-radius:var(--radius-pill);background:var(--panel-2);border:1px solid var(--line);">
+      <span style="width:7px;height:7px;border-radius:50%;background:${online?'var(--good)':'var(--faint)'};"></span>
+      ${esc(p.emoji)} ${esc(p.name)}</span>`;
+  }).join("");
+}
 function sendChat(text){
   if(!db || !text.trim() || !chatRoom) return;
   const node=push(ref(db,"chatRooms/"+chatRoom));
@@ -5153,17 +5202,23 @@ function sendChat(text){
 /* ----- DIRECT MESSAGES ----- */
 function renderDmPeople(){
   const wrap=$("dmPeople"); if(!wrap) return;
-  const peers=Object.values(hub.dmPeers).filter(p=>p.uid!==me.uid);
-  if(!peers.length){ wrap.innerHTML='<div class="hub-empty">No teammates online yet. People appear here once they share their location or post.</div>'; return; }
+  const peers=rosterPeople().filter(p=>p.uid!==me.uid);
+  if(!peers.length){ wrap.innerHTML='<div class="hub-empty">No other team members found in the roster.</div>'; return; }
   wrap.innerHTML="";
   peers.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(p=>{
+    const online = !!(hub.dmPeers||{})[p.uid];
     const row=document.createElement("div"); row.className="dm-person";
     row.innerHTML=`<div class="dot" style="background:${esc(p.color||'#3da9fc')}">${esc(p.emoji||'🙂')}</div>
-      <div class="nm">${esc(p.name||'User')}</div>
-      <div class="st">${esc(STATUS_LABELS[p.status]||'')}</div>`;
-    row.addEventListener("click",()=>openDm(p.uid));
+      <div class="nm">${esc(p.name||'User')}${p.role?` <span style="color:var(--faint);font-size:.72rem;">${esc(p.role.toUpperCase())}</span>`:''}</div>
+      <div class="st">${online?(STATUS_LABELS[p.status]||'🟢 online'):''}</div>`;
+    row.addEventListener("click",()=>openDmTo(p));
     wrap.appendChild(row);
   });
+}
+/* Open a DM to a roster person (ensures we have their basics even if offline). */
+function openDmTo(p){
+  if(!hub.dmPeers[p.uid]) hub.dmPeers[p.uid]={ uid:p.uid, name:p.name, emoji:p.emoji, color:p.color, status:p.status };
+  openDm(p.uid);
 }
 let dmUnsub=null;
 function openDm(uid){
@@ -6325,6 +6380,16 @@ function initNextLevel(){
 /* Reveal manager-only next-level buttons (called from applyAdminUI). */
 function applyNextLevelAdminUI(){
   const sc=$("btnStartCampaign"); if(sc) sc.classList.toggle("hidden", !me.isManager);
+  applyFeedRestrictions();
+}
+/* FSS / DM may only post "feelings" — hide every other feed-composer control. */
+function applyFeedRestrictions(){
+  const only=feedFeelingOnly();
+  ["feedShoutBtn","feedPhotoBtn","feedInput","feedSend"].forEach(id=>{ const el=$(id); if(el) setVis(el, !only); });
+  const feel=$("feedFeelingBtn"); if(feel) setVis(feel, true);
+  /* Make the feeling button obvious as the only option for these roles. */
+  if(only && feel){ feel.style.flex="1"; feel.title="Post how you're feeling"; }
+  else if(feel){ feel.style.flex="0 0 auto"; }
 }
 
 /* ============================================================
