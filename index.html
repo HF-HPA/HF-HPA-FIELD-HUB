@@ -846,6 +846,23 @@
     .rx-add:hover{ border-color:var(--accent-line); color:var(--accent); }
     .mention{ color:var(--accent); font-weight:700; }
 
+    /* Next-level UI */
+    .tl-row{ display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+    .tl-row:last-child{ border-bottom:none; }
+    .tl-ico{ flex:0 0 auto; }
+    .tl-b{ flex:1; min-width:0; }
+    .tl-t{ font-size:.84rem; color:var(--text); }
+    .tl-w{ font-size:.7rem; color:var(--faint); margin-top:2px; }
+    .an-stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+    @media(max-width:520px){ .an-stats{ grid-template-columns:repeat(3,1fr); } }
+    .an-stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:8px 4px; text-align:center; }
+    .an-stat .an-n{ font-size:1.1rem; font-weight:800; color:var(--heading); }
+    .an-stat .an-l{ font-size:.64rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+    .reminder-row{ font-size:.82rem; color:var(--text); padding:7px 9px; border-radius:9px; background:var(--panel-2);
+      border:1px solid var(--line); margin-top:6px; cursor:pointer; }
+    .reminder-row:hover{ border-color:var(--accent-line); }
+    .ref-store{ color:var(--accent); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+
     /* Onboarding tour */
     .tour-back{ position:fixed; inset:0; z-index:9600; background:rgba(4,8,16,.78); backdrop-filter:blur(6px);
       display:flex; align-items:center; justify-content:center; padding:20px; }
@@ -1087,6 +1104,16 @@
               <span class="field-label" style="margin:0;">📸 Store photos</span>
               <div id="spGallery" style="display:flex;gap:8px;overflow-x:auto;margin-top:8px;padding-bottom:4px;"></div>
             </div>
+
+            <div id="spTimelineWrap" class="hidden" style="margin-top:18px;">
+              <span class="field-label" style="margin:0;">🕓 Store timeline</span>
+              <div id="spTimeline" style="margin-top:8px;"></div>
+            </div>
+
+            <div id="spActionRow" class="hidden" style="display:flex;gap:8px;margin-top:14px;">
+              <button id="btnHandoff" class="btn btn-ghost" type="button" style="flex:1;padding:7px 10px;font-size:.78rem;min-height:auto;">🤝 Hand off</button>
+              <button id="btnShareReport" class="btn btn-ghost" type="button" style="flex:1;padding:7px 10px;font-size:.78rem;min-height:auto;">📤 Report</button>
+            </div>
           </aside>
         </div>
       </section>
@@ -1110,9 +1137,14 @@
         <div class="head"><h2>My Day</h2><p>Your assigned stores, nearest first. Tap to work the checklist and attach photos.</p></div>
         <div id="todayBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
           <button id="btnDaySummary" class="btn btn-ghost" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🌱 Summarize my day</button>
+          <button id="btnSpeakBrief" class="btn btn-ghost" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🔊 Brief me</button>
           <button id="btnOptimizeRoute" class="btn btn-ghost" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🧭 Optimize route</button>
+          <button id="btnStartCampaign" class="btn btn-ghost hidden" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🎯 New campaign</button>
         </div>
+        <div id="campaignBox" class="panel panel-pad hidden" style="margin-bottom:12px;"></div>
+        <div id="reminderBox" class="panel panel-pad hidden" style="margin-bottom:12px;"></div>
         <div id="dayThought" class="info-banner hidden" style="margin-bottom:12px;"></div>
+        <div id="analyticsBox" class="panel panel-pad hidden" style="margin-bottom:12px;"></div>
         <div id="trendBox" class="panel panel-pad" style="margin-bottom:12px;"></div>
         <div id="leaderboardBox" class="panel panel-pad" style="margin-bottom:12px;"></div>
         <div id="todayList"><div class="hub-empty">Loading your stores…</div></div>
@@ -1334,6 +1366,12 @@
         <button class="btn btn-ghost" data-text-set="normal" type="button" style="flex:1;">A</button>
         <button class="btn btn-ghost" data-text-set="large" type="button" style="flex:1;font-size:1.1rem;">A+</button>
         <button class="btn btn-ghost" data-text-set="xlarge" type="button" style="flex:1;font-size:1.25rem;">A++</button>
+      </div>
+    </div>
+    <div class="fld"><label class="field-label">Language</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" data-lang-set="en" type="button" style="flex:1;">English</button>
+        <button class="btn btn-ghost" data-lang-set="es" type="button" style="flex:1;">Español</button>
       </div>
     </div>
     <div class="modal-actions"><button class="btn btn-primary" data-close="settingsModal" type="button">Done</button></div>
@@ -2155,6 +2193,7 @@ function applyAdminUI(){
   const pb=$("btnPostBanner"); if(pb) pb.classList.toggle("hidden", !me.isManager);
   const ex=$("btnExportCsv"); if(ex) ex.classList.toggle("hidden", !me.isManager);
   const wd=$("btnWeeklyDigest"); if(wd) wd.classList.toggle("hidden", !me.isManager);
+  if(typeof applyNextLevelAdminUI==="function") applyNextLevelAdminUI();
   if(typeof renderBanners==="function") renderBanners();   // refresh delete buttons by role
   if(typeof applyCareAdminBars==="function") applyCareAdminBars();   // item 13-care add buttons
   if(typeof rerenderCare==="function") rerenderCare();              // show/hide per-card edit buttons
@@ -3443,6 +3482,9 @@ function addItemPhoto(itemId){
         const s=stores[selected]; s.photos=s.photos||{}; s.photos[_photoTargetItem]=data;
         if(db) set(ref(db,`stores/${selected}/photos/${_photoTargetItem}`), data).catch(err=>{ console.error(err); alert("Couldn't save the photo (it may be too large)."); });
         renderChecklistPanel();
+        /* #15 auto-tag in the background (best-effort, non-blocking) */
+        const sid=selected, itemId=_photoTargetItem;
+        autoTagPhoto(data).then(tags=>{ if(tags && db) set(ref(db,`stores/${sid}/photoTags/${itemId}`), tags).catch(()=>{}); });
       }catch(err){ console.error(err); alert("Couldn't read that photo."); }
     });
   }
@@ -3473,6 +3515,8 @@ function selectStore(id){
   setVis($("spIssuesWrap"), true);
   renderIssuesPanel();
   renderStoreGallery();
+  renderStoreTimeline();
+  setVis($("spActionRow"), true);
   /* last-visit line under the title */
   const lv=lastVisitText(s);
   $("spSub").textContent = lv ? (s.name+" · "+lv) : s.name;
@@ -3752,6 +3796,9 @@ function renderLeaderboard(){
 function renderToday(){
   const wrap=$("todayList"); if(!wrap) return;
   if(typeof renderLeaderboard==="function") renderLeaderboard();
+  if(typeof renderReminders==="function") renderReminders();
+  if(typeof renderAnalytics==="function") renderAnalytics();
+  if(typeof renderCampaign==="function") renderCampaign();
   let ids=myAssignedStoreIds();
   if(!ids.length){
     wrap.innerHTML='<div class="hub-empty">No stores assigned to you yet. A manager can assign stores from the map (tap a store → Assign).</div>';
@@ -4433,6 +4480,7 @@ function startPresence(){
     try{ localStorage.setItem(lastPosKey(), JSON.stringify(lastPos)); }catch(e){}
     writePresence();               // ← only writes once we have a REAL fix
     setLocBtn(true);
+    if(typeof checkGeofence==="function") checkGeofence(lastPos);  // auto check-in / time-on-site
     if(map && !startPresence._centered){ startPresence._centered=true; map.setView([lastPos.lat,lastPos.lng], Math.max(map.getZoom(),11)); }
   }, err=>{
     /* Denied or unavailable — do NOT broadcast a guessed position. */
@@ -4502,6 +4550,7 @@ async function fetchWeather(){
   const { lat, lng } = rosterCentroid();
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}`
     + `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`
+    + `&daily=temperature_2m_max,temperature_2m_min`
     + `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
   try{
     const res=await fetch(url);
@@ -4518,6 +4567,11 @@ async function fetchWeather(){
     if(c.relative_humidity_2m!=null) bits.push(`${Math.round(c.relative_humidity_2m)}% humidity`);
     if(c.wind_speed_10m!=null) bits.push(`${Math.round(c.wind_speed_10m)} mph wind`);
     $("homeCond").textContent = bits.length? bits.join(" · ") : "Local conditions";
+    /* #4 weather-aware task prompt */
+    const dd=data.daily||{};
+    if(typeof weatherAdvisory==="function" && dd.temperature_2m_min){
+      weatherAdvisory(dd.temperature_2m_min[0], dd.temperature_2m_max?dd.temperature_2m_max[0]:null);
+    }
   }catch(e){
     console.error("weather:",e);
     $("weatherGlyph").textContent="🌡";
@@ -4948,7 +5002,7 @@ function renderFeed(val){
         <div class="txt"><b>${esc(p.name||'User')}</b> is feeling ${esc(p.feelEmoji||'🙂')} <b>${esc(p.feelWord||'')}</b>${because}.</div>
         <div class="when">${esc(fmtTime(p.ts))}</div>`;
     } else {
-      const txt = p.text ? `<div class="txt">${highlightMentions(esc(p.text))}</div>` : "";
+      const txt = p.text ? `<div class="txt">${linkifyRefs(highlightMentions(esc(p.text)))}</div>` : "";
       const photo = p.photo ? `<img class="photo" src="${esc(p.photo)}" alt="photo" loading="lazy">` : "";
       const top = isShout && p.toName
         ? `${esc(p.name||'User')} → <b>${esc(p.toName)}</b>`
@@ -4965,6 +5019,7 @@ function renderFeed(val){
     }
     el.querySelectorAll("[data-rx]").forEach(b=> b.addEventListener("click",()=>toggleReaction(b.dataset.post, b.dataset.rx)));
     el.querySelectorAll("[data-rxadd]").forEach(b=> b.addEventListener("click",()=>openReactionPicker(b.dataset.rxadd)));
+    wireRefClicks(el);
     log.appendChild(el);
   });
 }
@@ -5323,15 +5378,19 @@ function renderBanners(){
   const arr=Object.keys(banners||{}).map(k=>({ id:k, ...banners[k] })).filter(b=>b && (b.title||b.text))
     .sort((a,b)=>(a.ts||0)-(b.ts||0));   // oldest on top so a #5 notice sits above later ones
   arr.forEach(b=>{
+    markBannerSeen(b.id);   // #7 read receipt
+    const seenCount = b.seenBy ? Object.keys(b.seenBy).length : 0;
     const el=document.createElement("div");
     el.className="team-banner"+(b.kind==="announce"?" announce":"");
     const del = me.isManager
       ? `<button class="tb-del" title="Remove banner" type="button" data-del="${esc(b.id)}">×</button>` : "";
+    const seen = me.isManager && seenCount ? `<div class="tb-meta">👁 Seen by ${seenCount}</div>` : "";
     el.innerHTML=`<div class="tb-icon">${b.kind==="announce"?"📣":"📢"}</div>
       <div class="tb-body">
         ${b.title?`<div class="tb-title">${esc(b.title)}</div>`:""}
         ${b.text?`<div class="tb-text">${esc(b.text)}</div>`:""}
         <div class="tb-meta">${esc(b.name||"Manager")} · ${esc(fmtTime(b.ts))}</div>
+        ${seen}
       </div>${del}`;
     if(me.isManager){
       const d=el.querySelector("[data-del]");
@@ -5945,6 +6004,330 @@ function initCareEditing(){
 }
 
 /* ============================================================
+   NEXT-LEVEL FEATURES (block 1)
+   ============================================================ */
+
+/* ---------- #1/#2 Geofenced auto check-in + time-on-site ---------- */
+const GEOFENCE_M = 150;            // meters: "at the store"
+let geoInside = null;              // store id currently inside
+let geoEnterTs = 0;
+let _geoToastedFor = null;
+function checkGeofence(pos){
+  if(!pos) return;
+  /* find nearest store within the fence */
+  let near=null, nd=Infinity;
+  Object.values(stores).forEach(s=>{
+    if(s.lat==null||s.lng==null) return;
+    const d=haversine(pos, s)*1000;   // km→m
+    if(d<nd){ nd=d; near=s; }
+  });
+  const insideId = (near && nd<=GEOFENCE_M) ? near.id : null;
+
+  if(insideId && insideId!==geoInside){
+    /* entered a store */
+    geoInside=insideId; geoEnterTs=Date.now();
+    if(_geoToastedFor!==insideId){
+      _geoToastedFor=insideId;
+      showToast(`📍 You're at <b>#${esc(insideId)} ${esc(stores[insideId].name||"")}</b> — opening its checklist`, "📍");
+    }
+    /* surface the store: select it + jump to map */
+    if(curView!=="map") showOnlyView("map");
+    selectStore(insideId);
+    recordVisit(insideId);
+  } else if(!insideId && geoInside){
+    /* left the store — log time on site */
+    const mins=Math.round((Date.now()-geoEnterTs)/60000);
+    const leftId=geoInside;
+    geoInside=null; _geoToastedFor=null;
+    if(mins>=1 && db){
+      const node=push(ref(db,"timeOnSite/"+leftId));
+      set(node,{ uid:me.uid, name:me.name, minutes:mins, ts:Date.now() }).catch(()=>{});
+      showToast(`⏱ Logged ${mins} min at #${esc(leftId)}`, "⏱");
+    }
+  }
+}
+
+/* ---------- #4 Weather-aware task prompts ---------- */
+/* Uses the forecast already fetched for the home weather chip. We expose a hook:
+   when a daily forecast is available, flag freeze/heat risk for the map's stores. */
+let _wxAdvisoryShown=false;
+function weatherAdvisory(lowF, highF){
+  if(_wxAdvisoryShown) return;
+  let msg=null;
+  if(lowF!=null && lowF<=32) msg=`🥶 Hard freeze tonight (low ${Math.round(lowF)}°F). Pull or cover tender tropicals at your stores.`;
+  else if(highF!=null && highF>=92) msg=`🥵 High heat today (${Math.round(highF)}°F). Prioritize watering — check trays this afternoon.`;
+  if(msg){
+    _wxAdvisoryShown=true;
+    const box=$("dayThought");
+    if(box){ setVis(box,true); box.innerHTML=esc(msg); }
+    showToast(msg, lowF<=32?"🥶":"🥵");
+  }
+}
+
+/* ---------- #3 Predictive flagging (pattern spotting from history) ---------- */
+function predictiveFlags(){
+  /* Look at storeIssues: if the same store has 2+ issues mentioning the same
+     keyword, or a store hasn't been visited in 7+ days, flag it. */
+  const flags=[];
+  const now=Date.now();
+  Object.keys(storeIssues||{}).forEach(sid=>{
+    const arr=Object.values(storeIssues[sid]||{}).filter(Boolean);
+    if(arr.length>=2){
+      flags.push({ sid, text:`#${sid} ${stores[sid]?stores[sid].name:""}: ${arr.length} issues logged — recurring problem.` });
+    }
+  });
+  myAssignedStoreIds().forEach(sid=>{
+    const lv=stores[sid] && stores[sid].lastVisit;
+    if(lv && lv.ts && (now-lv.ts)>7*86400000){
+      const days=Math.floor((now-lv.ts)/86400000);
+      flags.push({ sid, text:`#${sid} ${stores[sid]?stores[sid].name:""}: not visited in ${days} days.` });
+    }
+  });
+  return flags;
+}
+
+/* ---------- #6/#reminders Smart reminders banner ---------- */
+function renderReminders(){
+  const box=$("reminderBox"); if(!box) return;
+  const flags=predictiveFlags().slice(0,4);
+  if(!flags.length){ box.classList.add("hidden"); box.innerHTML=""; return; }
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="field-label" style="margin:0 0 6px;">🔔 Heads up</div>`+
+    flags.map(f=>`<div class="reminder-row" data-sid="${esc(f.sid)}">⚠️ ${esc(f.text)}</div>`).join("");
+  box.querySelectorAll(".reminder-row").forEach(r=>r.addEventListener("click",()=>{
+    const sid=r.dataset.sid; showOnlyView("map"); setTimeout(()=>{ if(stores[sid]){ selectStore(sid); if(map&&stores[sid].lat!=null) map.setView([stores[sid].lat,stores[sid].lng], Math.max(map.getZoom(),13)); } },200);
+  }));
+}
+
+/* ---------- #4 (store) timeline: per-store history ---------- */
+function buildStoreTimeline(sid){
+  const events=[];
+  const lv=stores[sid] && stores[sid].lastVisit;
+  if(lv && lv.ts) events.push({ ts:lv.ts, icon:"🕓", text:`Worked by ${lv.name||"someone"}` });
+  Object.values((storeIssues||{})[sid]||{}).forEach(it=>{ if(it&&it.ts) events.push({ ts:it.ts, icon:"⚠️", text:`Issue: ${it.text||""}` }); });
+  Object.values((damageClaims||{})[sid]||{}).forEach(d=>{ if(d&&d.ts) events.push({ ts:d.ts, icon:"📋", text:`Damage: ${d.reason||""}${d.qty?" ×"+d.qty:""}` }); });
+  Object.values((timeOnSiteData||{})[sid]||{}).forEach(t=>{ if(t&&t.ts) events.push({ ts:t.ts, icon:"⏱", text:`${t.minutes} min on site (${t.name||""})` }); });
+  return events.sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,12);
+}
+let timeOnSiteData={};
+function renderStoreTimeline(){
+  const wrap=$("spTimelineWrap"), box=$("spTimeline");
+  if(!box||!selected){ if(wrap) setVis(wrap,false); return; }
+  const ev=buildStoreTimeline(selected);
+  if(!ev.length){ setVis(wrap,false); box.innerHTML=""; return; }
+  setVis(wrap,true);
+  box.innerHTML=ev.map(e=>`<div class="tl-row"><span class="tl-ico">${e.icon}</span><div class="tl-b"><div class="tl-t">${esc(e.text)}</div><div class="tl-w">${esc(fmtTime(e.ts))}</div></div></div>`).join("");
+}
+
+/* ============================================================
+   NEXT-LEVEL FEATURES (block 2)
+   ============================================================ */
+
+/* ---------- #5 Task handoff ---------- */
+function handoffStore(){
+  if(!selected) return;
+  const peers=Object.values(hub.dmPeers||{}).filter(p=>p.uid!==me.uid);
+  if(!peers.length){ alert("No teammates are online to hand off to right now."); return; }
+  const names=peers.map((p,i)=>`${i+1}. ${p.name}`).join("\n");
+  const pick=window.prompt(`Hand off store #${selected} to:\n\n${names}\n\nType a number:`, "1");
+  const idx=parseInt(pick,10)-1;
+  if(isNaN(idx)||!peers[idx]) return;
+  const note=window.prompt("Add a note (optional):","")||"";
+  const target=peers[idx];
+  if(db){
+    /* reassign + record the handoff */
+    set(ref(db,"assignments/"+selected), { uid:target.uid, name:target.name, emoji:target.emoji, color:target.color }).catch(console.error);
+    const node=push(ref(db,"handoffs/"+target.uid));
+    set(node,{ storeId:selected, fromName:me.name, note, ts:Date.now() }).catch(()=>{});
+    notifyManagerChange(`handed off store #${selected} to ${target.name}`);
+  }
+  showToast(`Handed off #${selected} to ${esc(target.name)}`, "🤝");
+}
+function watchHandoffs(){
+  if(!db || !me.uid) return;
+  let primed=false, seen=0;
+  onValue(ref(db,"handoffs/"+me.uid), snap=>{
+    const arr=Object.values(snap.val()||{}).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    if(!primed){ primed=true; seen=arr.length?arr[arr.length-1].ts:Date.now(); return; }
+    arr.forEach(h=>{ if(h.ts>seen){ showToast(`🤝 <b>${esc(h.fromName||"A teammate")}</b> handed you store #${esc(h.storeId)}${h.note?": "+esc(h.note):""}`, "🤝"); } });
+    if(arr.length) seen=arr[arr.length-1].ts;
+  }, ()=>{});
+}
+
+/* ---------- #7 Read receipts on banners ---------- */
+function markBannerSeen(id){
+  if(!db || !me.uid || !id) return;
+  set(ref(db,`banners/${id}/seenBy/${me.uid}`), me.name||me.username||"user").catch(()=>{});
+}
+
+/* ---------- #8 @store / #topic linkify in feed/chat ---------- */
+function linkifyRefs(escapedText){
+  /* #1851 → tappable store ref (only if that store exists) */
+  return escapedText.replace(/#(\d{3,5})\b/g, (m, num)=> stores[num] ? `<span class="ref-store" data-refstore="${num}">#${num}</span>` : m);
+}
+function wireRefClicks(container){
+  if(!container) return;
+  container.querySelectorAll("[data-refstore]").forEach(el=> el.addEventListener("click",()=>{
+    const sid=el.dataset.refstore; showOnlyView("map");
+    setTimeout(()=>{ if(stores[sid]){ selectStore(sid); if(map&&stores[sid].lat!=null) map.setView([stores[sid].lat,stores[sid].lng], Math.max(map.getZoom(),13)); } },200);
+  }));
+}
+
+/* ---------- #9 Manager analytics dashboard ---------- */
+function renderAnalytics(){
+  const box=$("analyticsBox"); if(!box) return;
+  if(!me.isManager){ box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const ids=Object.keys(stores); const total=ids.length;
+  const done=ids.filter(id=>completion(stores[id])>=1).length;
+  /* completion by district */
+  const byDist={};
+  ids.forEach(id=>{ const t=String(stores[id].territory||"?"); byDist[t]=byDist[t]||{t:0,d:0}; byDist[t].t++; if(completion(stores[id])>=1) byDist[t].d++; });
+  const dKeys=Object.keys(byDist).sort();
+  let openIssues=0; Object.values(storeIssues||{}).forEach(m=>openIssues+=Object.keys(m||{}).length);
+  let claims=0; Object.values(damageClaims||{}).forEach(m=>claims+=Object.keys(m||{}).length);
+  /* avg time on site */
+  let tMins=0,tCount=0; Object.values(timeOnSiteData||{}).forEach(m=>Object.values(m||{}).forEach(t=>{ if(t&&t.minutes){tMins+=t.minutes;tCount++;} }));
+  const avgT = tCount?Math.round(tMins/tCount):0;
+
+  const bars=dKeys.map(t=>{
+    const pct=Math.round(byDist[t].d/byDist[t].t*100);
+    return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+      <span style="width:64px;font-size:.78rem;color:var(--muted);">Dist ${esc(t)}</span>
+      <div style="flex:1;height:14px;background:var(--panel-2);border-radius:7px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent),var(--accent-2));"></div></div>
+      <span style="width:38px;text-align:right;font-weight:700;font-size:.78rem;">${pct}%</span></div>`;
+  }).join("");
+
+  box.innerHTML=`<div class="field-label" style="margin:0 0 8px;">📊 Manager analytics</div>
+    <div class="an-stats">
+      <div class="an-stat"><div class="an-n">${total?Math.round(done/total*100):0}%</div><div class="an-l">Overall</div></div>
+      <div class="an-stat"><div class="an-n">${done}/${total}</div><div class="an-l">Stores done</div></div>
+      <div class="an-stat"><div class="an-n">${openIssues}</div><div class="an-l">Open issues</div></div>
+      <div class="an-stat"><div class="an-n">${claims}</div><div class="an-l">Claims</div></div>
+      <div class="an-stat"><div class="an-n">${avgT}m</div><div class="an-l">Avg on-site</div></div>
+    </div>
+    <div style="margin-top:10px;">${bars||'<span class="gs-hint">No district data.</span>'}</div>`;
+}
+
+/* ---------- #10 Shareable store report ---------- */
+function shareStoreReport(){
+  if(!selected) return;
+  const s=stores[selected];
+  const pct=Math.round(completion(s)*100);
+  const issues=Object.values((storeIssues||{})[selected]||{}).filter(Boolean);
+  const lines=[];
+  lines.push(`HF-HPA STORE REPORT`);
+  lines.push(`#${s.id} — ${s.name}`);
+  if(s.address) lines.push(s.address);
+  lines.push(`Territory ${s.territory||"?"} · Checklist ${pct}% complete`);
+  const lv=lastVisitText(s); if(lv) lines.push(lv);
+  if(issues.length){ lines.push(""); lines.push(`Open issues (${issues.length}):`); issues.forEach(i=>lines.push(` • ${i.text} (${i.date||""})`)); }
+  lines.push(""); lines.push(`Generated ${new Date().toLocaleString()}`);
+  const text=lines.join("\n");
+  if(navigator.share){ navigator.share({ title:`Store #${s.id} report`, text }).catch(()=>{}); }
+  else { navigator.clipboard && navigator.clipboard.writeText(text); alert("Store report copied to clipboard:\n\n"+text); }
+}
+
+/* ---------- #11 Language toggle (Sprout + key labels) ---------- */
+let appLang="en";
+function applyLang(l){
+  appLang=l;
+  try{ localStorage.setItem("hub_lang", l); }catch(e){}
+  /* Translate a small set of high-traffic labels; Sprout switches fully. */
+  const t=(en,es)=> l==="es"?es:en;
+  const map_={
+    "navMap":["Map","Mapa"],"navToday":["My Day","Mi Día"],"navProducts":["Products","Productos"],
+    "navCare":["Care","Cuidado"],"navOps":["Ops","Ops"]
+  };
+  const labels=document.querySelectorAll('.bn-item .bn-lab');
+  const order=["Map","My Day","Products","Care","Ops"];
+  const es=["Mapa","Mi Día","Productos","Cuidado","Ops"];
+  labels.forEach((el,i)=>{ el.textContent = l==="es"?es[i]:order[i]; });
+  $$('[data-lang-set]').forEach(b=> b.classList.toggle("btn-primary", b.dataset.langSet===l));
+}
+
+/* ---------- #12 Campaign mode ---------- */
+let campaign=null;
+function renderCampaign(){
+  const box=$("campaignBox"); if(!box) return;
+  if(!campaign || !campaign.name){ box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const end=campaign.endTs?new Date(campaign.endTs):null;
+  let countdown="";
+  if(end){ const days=Math.ceil((end-Date.now())/86400000); countdown = days>0?`${days} day${days===1?"":"s"} left`:(days===0?"Ends today":"Ended"); }
+  box.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div><div style="font-weight:800;color:var(--heading);">🎯 ${esc(campaign.name)}</div>
+    <div style="font-size:.78rem;color:var(--muted);">${esc(campaign.note||"")} ${countdown?"· "+esc(countdown):""}</div></div>
+    ${me.isManager?'<button id="campaignEnd" class="btn btn-ghost" type="button" style="padding:6px 10px;font-size:.75rem;min-height:auto;">End</button>':''}</div>`;
+  const eb=$("campaignEnd"); if(eb) eb.addEventListener("click",()=>{ if(confirm("End this campaign?")){ if(db) remove(ref(db,"campaign")).catch(()=>{}); } });
+}
+function startCampaign(){
+  if(!requireManager("start a campaign")) return;
+  const name=window.prompt("Campaign name (e.g. Spring Color Reset):",""); if(!name) return;
+  const note=window.prompt("Short note / goal:","")||"";
+  const dleft=parseInt(window.prompt("How many days does it run?","14"),10);
+  const endTs=isNaN(dleft)?0:Date.now()+dleft*86400000;
+  if(db) set(ref(db,"campaign"),{ name:name.trim(), note:note.trim(), endTs, by:me.name, ts:Date.now() }).catch(console.error);
+}
+
+/* ---------- #13 Sprout morning brief (voice playback) ---------- */
+function speakBrief(){
+  if(!("speechSynthesis" in window)){ alert("Voice playback isn't supported on this browser."); return; }
+  const ids=myAssignedStoreIds();
+  const done=ids.filter(id=>completion(stores[id])>=1).length;
+  let nearest=null,nd=Infinity;
+  if(lastPos) ids.forEach(id=>{ if(stores[id].lat!=null){ const d=haversine(lastPos,stores[id]); if(d<nd){nd=d;nearest=id;} } });
+  const parts=[`Good morning ${(me.name||"").split(" ")[0]}.`];
+  if(ids.length){ parts.push(`You have ${ids.length-done} of ${ids.length} stores left today.`); if(nearest) parts.push(`Your closest store is ${stores[nearest].name}, about ${(nd*0.621371).toFixed(1)} miles away.`); }
+  else parts.push("You have no stores assigned today.");
+  const flags=predictiveFlags(); if(flags.length) parts.push(`Heads up: ${flags[0].text.replace(/#\d+\s*/,"")}`);
+  const u=new SpeechSynthesisUtterance(parts.join(" "));
+  u.lang = appLang==="es"?"es-ES":"en-US"; u.rate=1;
+  window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+}
+
+/* ---------- #15 Photo auto-tagging (vision) ---------- */
+async function autoTagPhoto(dataUrl){
+  try{
+    const m=/^data:(image\/[a-z]+);base64,(.*)$/i.exec(dataUrl||""); if(!m) return "";
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:60,
+        system:"Return 2-4 short comma-separated tags describing this retail plant-display photo (e.g. 'healthy ferns, faced bench, clean, well-watered'). Tags only, no sentences.",
+        messages:[{ role:"user", content:[{ type:"image", source:{ type:"base64", media_type:m[1], data:m[2] } },{ type:"text", text:"Tag this photo." }] }] })
+    });
+    if(!res.ok) return "";
+    const data=await res.json();
+    return (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join(" ").trim().slice(0,120);
+  }catch(e){ return ""; }
+}
+
+/* ---------- Wire all next-level features ---------- */
+function initNextLevel(){
+  /* buttons */
+  const bind=(id,fn)=>{ const el=$(id); if(el) el.addEventListener("click",fn); };
+  bind("btnHandoff", handoffStore);
+  bind("btnShareReport", shareStoreReport);
+  bind("btnSpeakBrief", speakBrief);
+  bind("btnStartCampaign", startCampaign);
+  /* language toggle */
+  let lang="en"; try{ lang=localStorage.getItem("hub_lang")||"en"; }catch(e){}
+  applyLang(lang);
+  $$('[data-lang-set]').forEach(b=> b.addEventListener("click",()=>applyLang(b.dataset.langSet)));
+  /* subscriptions */
+  if(db){
+    onValue(ref(db,"timeOnSite"), snap=>{ timeOnSiteData=snap.val()||{}; if(selected) renderStoreTimeline(); }, ()=>{});
+    onValue(ref(db,"campaign"), snap=>{ campaign=snap.val()||null; renderCampaign(); }, ()=>{});
+    watchHandoffs();
+  }
+}
+/* Reveal manager-only next-level buttons (called from applyAdminUI). */
+function applyNextLevelAdminUI(){
+  const sc=$("btnStartCampaign"); if(sc) sc.classList.toggle("hidden", !me.isManager);
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 function init(){
@@ -5974,6 +6357,7 @@ function init(){
   initDamage();            // damage claims
   initWeeklyDigest();      // weekly digest
   initTour();              // onboarding tour
+  initNextLevel();         // geofence/handoff/campaign/analytics/voice/language
   initCareEditing();       // item 13-care
   initSproutVoice();       // item 20 voice-to-text
   initIdentify();          // item 21 plant identifier
