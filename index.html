@@ -117,13 +117,15 @@
     /* ====== REDESIGN: bottom navigation (mobile-first) ====== */
     .bottom-nav{
       position:fixed; left:0; right:0; bottom:0; z-index:8000;
-      display:flex; align-items:stretch;
+      display:none; align-items:stretch;
       padding:6px 6px calc(6px + var(--safe-bottom));
       background:linear-gradient(180deg, rgba(18,27,48,.86), rgba(10,16,32,.98));
       border-top:1px solid var(--line);
       backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
       box-shadow:0 -8px 30px rgba(0,0,0,.4);
     }
+    /* Only visible once signed in; pinned to the viewport while scrolling. */
+    body.has-bottomnav .bottom-nav{ display:flex; }
     .bn-item{
       flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
       border:none; background:none; cursor:pointer; font-family:inherit;
@@ -1292,25 +1294,6 @@
       </section>
 
       <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Ops</div>
-
-      <!-- ===== BOTTOM NAVIGATION (mobile-first one-tap nav) ===== -->
-      <nav id="bottomNav" class="bottom-nav" role="navigation" aria-label="Main">
-        <button class="bn-item active" data-view="map" type="button">
-          <span class="bn-ico">🗺</span><span class="bn-lab">Map</span>
-        </button>
-        <button class="bn-item" data-view="today" type="button">
-          <span class="bn-ico">📋</span><span class="bn-lab">My Day</span>
-        </button>
-        <button class="bn-item" data-view="products" type="button">
-          <span class="bn-ico">📦</span><span class="bn-lab">Products</span>
-        </button>
-        <button class="bn-item" data-view="careid" type="button">
-          <span class="bn-ico">🌿</span><span class="bn-lab">Care</span>
-        </button>
-        <button class="bn-item" data-view="ops" type="button">
-          <span class="bn-ico">🛠</span><span class="bn-lab">Ops</span>
-        </button>
-      </nav>
     </div>
   </div>
 
@@ -1656,6 +1639,25 @@
   </div></div>
 
   <!-- ===== SOCIAL HUB ===== -->
+  <!-- ===== BOTTOM NAVIGATION (body-level so it stays pinned while scrolling) ===== -->
+  <nav id="bottomNav" class="bottom-nav" role="navigation" aria-label="Main">
+    <button class="bn-item active" data-view="map" type="button">
+      <span class="bn-ico">🗺</span><span class="bn-lab">Map</span>
+    </button>
+    <button class="bn-item" data-view="today" type="button">
+      <span class="bn-ico">📋</span><span class="bn-lab">My Day</span>
+    </button>
+    <button class="bn-item" data-view="products" type="button">
+      <span class="bn-ico">📦</span><span class="bn-lab">Products</span>
+    </button>
+    <button class="bn-item" data-view="careid" type="button">
+      <span class="bn-ico">🌿</span><span class="bn-lab">Care</span>
+    </button>
+    <button class="bn-item" data-view="ops" type="button">
+      <span class="bn-ico">🛠</span><span class="bn-lab">Ops</span>
+    </button>
+  </nav>
+
   <button id="hubFab" class="sprout-fab" aria-label="Open the team hub">💬<span id="hubBadge" class="hub-badge hidden"></span></button>
   <div id="hubPanel" class="sprout-panel hub-panel" role="dialog" aria-label="Team hub">
     <div class="sprout-head">
