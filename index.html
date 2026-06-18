@@ -330,10 +330,15 @@
     .splash .eyebrow{ font-size:.74rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); font-weight:700; }
     .splash h1{ font-size:1.6rem; color:var(--heading); margin-top:10px; letter-spacing:-.02em; }
     .splash p{ color:var(--muted); margin-top:8px; font-size:.88rem; }
-    .splash-btn{ margin-top:0; border:none; background:none; cursor:pointer; padding:0; transition:transform var(--t); }
+    .splash-btn{ margin-top:0; border:none; background:none; cursor:pointer; padding:0; transition:transform var(--t); display:flex; flex-direction:column; align-items:center; gap:14px; }
     .splash-btn:hover{ transform:translateY(-3px); }
     .splash-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:6px; border-radius:24px; }
     .splash-btn img{ width:140px; height:140px; border-radius:24px; object-fit:contain; }
+    .splash-fallback{ display:none; flex-direction:column; align-items:center; gap:6px;
+      font-size:1.5rem; font-weight:800; color:var(--heading); letter-spacing:.02em;
+      padding:40px 48px; border-radius:24px; background:var(--accent-soft); border:1px solid var(--accent-line); }
+    .splash-fallback small{ font-size:.8rem; font-weight:600; color:var(--accent); letter-spacing:.04em; text-transform:uppercase; }
+    .splash-btn.noimg .splash-fallback{ display:flex; }
     .login{ width:100%; max-width:360px; }
     .login .logo-wrap{ text-align:center; margin-bottom:6px; }
     .login .logo-wrap img{ width:64px; height:64px; border-radius:16px; background:var(--accent-soft); border:1px solid var(--line); }
@@ -888,7 +893,8 @@
     <section id="view-splash">
       <div class="center-stage">
         <button id="splashEnter" class="splash-btn" aria-label="Enter the hub">
-          <img src="hf_logo.png" alt="HF-HPA Hub" />
+          <img src="hf_logo.png" alt="HF-HPA Hub" onerror="this.style.display='none';this.parentNode.classList.add('noimg');" />
+          <span class="splash-fallback">HF-HPA&nbsp;Hub<small>Tap to enter</small></span>
         </button>
       </div>
     </section>
