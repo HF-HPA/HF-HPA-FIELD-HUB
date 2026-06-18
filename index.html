@@ -9,6 +9,13 @@
   <link rel="apple-touch-icon" href="hf_logo.png" />
   <meta name="theme-color" content="#0a1020" />
 
+  <!-- PWA: installable to the Home Screen, runs fullscreen -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HF-HPA Hub" />
+
   <!-- Leaflet (open-source map, no API key required) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -54,6 +61,40 @@
       --safe-bottom:env(safe-area-inset-bottom, 0px);
     }
 
+    /* ====== Light theme (opt-in via data-theme="light" on <html>) ====== */
+    html[data-theme="light"]{
+      --bg:#eef2f8;
+      --panel:#ffffff;
+      --panel-2:#f6f9ff;
+      --panel-raised:#ffffff;
+      --line:#d3dcec;
+      --line-soft:#e3e9f4;
+      --text:#28324a;
+      --heading:#0e1730;
+      --muted:#5b6884;
+      --faint:#8a97b2;
+      --accent:#1f74d6;
+      --accent-2:#0f9d8f;
+      --accent-soft:rgba(31,116,214,.12);
+      --accent-line:rgba(31,116,214,.40);
+      --good:#1ba872;
+      --warn:#c9890f;
+      --bad:#d6453f;
+      --shadow:0 8px 26px rgba(40,60,100,.14);
+      --shadow-lg:0 24px 60px rgba(40,60,100,.22);
+      --glow:0 0 0 1px rgba(31,116,214,.10), 0 8px 26px rgba(31,116,214,.10);
+    }
+    html[data-theme="light"] body{
+      background:
+        radial-gradient(1100px 560px at 12% -8%, rgba(31,116,214,.10) 0%, transparent 55%),
+        radial-gradient(900px 520px at 92% -4%, rgba(15,157,143,.08) 0%, transparent 52%),
+        var(--bg);
+    }
+
+    /* ====== Larger text mode (opt-in via data-text="large") ====== */
+    html[data-text="large"]{ font-size:118%; }
+    html[data-text="xlarge"]{ font-size:132%; }
+
     *{ box-sizing:border-box; margin:0; padding:0; }
     html,body{ min-height:100%; }
     body{
@@ -72,6 +113,38 @@
     }
 
     .hidden{ display:none !important; }
+
+    /* ====== REDESIGN: bottom navigation (mobile-first) ====== */
+    .bottom-nav{
+      position:fixed; left:0; right:0; bottom:0; z-index:8000;
+      display:flex; align-items:stretch;
+      padding:6px 6px calc(6px + var(--safe-bottom));
+      background:linear-gradient(180deg, rgba(18,27,48,.86), rgba(10,16,32,.98));
+      border-top:1px solid var(--line);
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+      box-shadow:0 -8px 30px rgba(0,0,0,.4);
+    }
+    .bn-item{
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+      border:none; background:none; cursor:pointer; font-family:inherit;
+      color:var(--muted); padding:6px 2px; border-radius:12px; transition:color var(--t), background var(--t), transform var(--t);
+      position:relative; min-height:52px;
+    }
+    .bn-item .bn-ico{ font-size:1.32rem; line-height:1; transition:transform var(--t); filter:grayscale(.25) opacity(.85); }
+    .bn-item .bn-lab{ font-size:.66rem; font-weight:700; letter-spacing:.01em; }
+    .bn-item.active{ color:var(--accent); background:var(--accent-soft); }
+    .bn-item.active .bn-ico{ transform:translateY(-1px) scale(1.08); filter:none; }
+    .bn-item:active{ transform:scale(.94); }
+    .bn-item.has-badge::after{
+      content:""; position:absolute; top:7px; right:calc(50% - 16px);
+      width:7px; height:7px; border-radius:50%; background:var(--bad); box-shadow:0 0 0 2px var(--panel);
+    }
+    /* room so content never hides behind the bar / hub fab */
+    body.has-bottomnav .wrap{ padding-bottom:calc(86px + var(--safe-bottom)); }
+
+    /* The old per-view dropdown menus are replaced by the bottom bar. */
+    .section-opts{ display:none !important; }
+    .section-top{ display:none !important; }
 
     .wrap{
       width:100%; max-width:var(--maxw); margin:0 auto;
@@ -405,10 +478,10 @@
 
     /* ---------- Sprout Bot ---------- */
     .sprout-fab{
-      position:fixed; right:16px; bottom:calc(16px + var(--safe-bottom)); z-index:9500;
-      width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+      position:fixed; right:14px; bottom:calc(80px + var(--safe-bottom)); z-index:9500;
+      width:54px; height:54px; border-radius:50%; border:none; cursor:pointer;
       background:linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow:0 12px 28px rgba(61,169,252,.5); font-size:1.55rem;
+      box-shadow:0 12px 28px rgba(61,169,252,.5); font-size:1.45rem;
       display:flex; align-items:center; justify-content:center; transition:transform var(--t);
     }
     .sprout-fab:hover{ transform:scale(1.06); }
@@ -727,7 +800,86 @@
     .sprout-action .sa-actions{ display:flex; gap:8px; margin-top:10px; }
     .sprout-action .sa-actions button{ padding:7px 13px; font-size:.82rem; min-height:auto; }
     .identify-loading{ display:flex; align-items:center; gap:8px; color:var(--muted); font-size:.86rem; }
-  </style>
+
+    /* Checklist photo proof */
+    .cl-photo-btn{ flex:0 0 auto; border:1px solid var(--line); background:var(--panel-2); cursor:pointer;
+      width:30px; height:30px; border-radius:8px; font-size:.95rem; line-height:1; transition:border-color var(--t); }
+    .cl-photo-btn:hover{ border-color:var(--accent-line); }
+    .cl-photo-btn.has{ border-color:var(--good); }
+    .cl-photo-thumb{ width:30px; height:30px; border-radius:8px; object-fit:cover; border:1px solid var(--good); cursor:zoom-in; flex:0 0 auto; }
+    .cl-live-item{ gap:8px; }
+
+    /* Global search overlay */
+    .gs-back{ position:fixed; inset:0; z-index:9300; background:rgba(4,8,16,.6); backdrop-filter:blur(4px);
+      display:flex; align-items:flex-start; justify-content:center; padding:calc(14px + var(--safe-top)) 12px 12px; }
+    .gs-panel{ width:100%; max-width:560px; background:var(--panel); border:1px solid var(--line);
+      border-radius:var(--radius); box-shadow:var(--shadow-lg); overflow:hidden; display:flex; flex-direction:column; max-height:82vh; }
+    .gs-bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--line); }
+    .gs-bar .gs-ico{ color:var(--accent); }
+    .gs-bar input{ flex:1; border:none; background:none; color:var(--heading); font-size:1rem; font-family:inherit; outline:none; }
+    .gs-bar #gsClose{ border:none; background:var(--panel-2); color:var(--muted); cursor:pointer; width:30px; height:30px; border-radius:8px; }
+    .gs-results{ overflow-y:auto; padding:6px; }
+    .gs-hint{ color:var(--faint); font-size:.85rem; padding:18px; text-align:center; }
+    .gs-group-label{ font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); padding:10px 12px 4px; }
+    .gs-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:none;
+      color:var(--text); cursor:pointer; font-family:inherit; padding:10px 12px; border-radius:10px; }
+    .gs-item:hover{ background:var(--accent-soft); }
+    .gs-item .gs-emoji{ flex:0 0 auto; font-size:1.15rem; }
+    .gs-item .gs-main{ flex:1; min-width:0; }
+    .gs-item .gs-title{ font-size:.9rem; color:var(--heading); font-weight:600; }
+    .gs-item .gs-sub{ font-size:.74rem; color:var(--muted); }
+
+    /* Reactions + mentions */
+    .rx-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .rx-chip{ display:inline-flex; align-items:center; gap:3px; font-size:.78rem; padding:3px 8px; border-radius:var(--radius-pill);
+      border:1px solid var(--line); background:var(--panel-2); color:var(--text); cursor:pointer; }
+    .rx-chip.mine{ border-color:var(--accent-line); background:var(--accent-soft); color:var(--heading); }
+    .rx-add{ font-size:.85rem; padding:2px 9px; border-radius:var(--radius-pill); border:1px dashed var(--line);
+      background:none; color:var(--muted); cursor:pointer; }
+    .rx-add:hover{ border-color:var(--accent-line); color:var(--accent); }
+    .mention{ color:var(--accent); font-weight:700; }
+
+    /* Onboarding tour */
+    .tour-back{ position:fixed; inset:0; z-index:9600; background:rgba(4,8,16,.78); backdrop-filter:blur(6px);
+      display:flex; align-items:center; justify-content:center; padding:20px; }
+    .tour-card{ width:100%; max-width:340px; background:var(--panel); border:1px solid var(--accent-line);
+      border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:24px; text-align:center; animation:rise .3s ease both; }
+    .tour-card h3{ color:var(--heading); margin:10px 0 6px; font-size:1.15rem; }
+    .tour-card p{ color:var(--text); font-size:.9rem; line-height:1.5; }
+    .tour-dots{ display:flex; gap:6px; justify-content:center; margin-top:16px; }
+    .tour-dots span{ width:7px; height:7px; border-radius:50%; background:var(--line); transition:background var(--t); }
+    .tour-dots span.on{ background:var(--accent); }
+    /* ====== REDESIGN: mobile compactness polish ====== */
+    @media(max-width:640px){
+      /* Tighter shell so content gets the screen */
+      .wrap{ padding:calc(8px + var(--safe-top)) 10px calc(86px + var(--safe-bottom)); }
+
+      /* Slim, sticky top bar */
+      .topbar{
+        position:sticky; top:0; z-index:600; margin-bottom:10px;
+        padding:8px 10px; border-radius:0 0 var(--radius) var(--radius);
+      }
+      .brand img{ width:32px; height:32px; border-radius:9px; }
+      .brand h1{ font-size:.9rem; }
+      .brand .tag{ display:none; }              /* the bottom nav already says what's where */
+      .user-chip{ gap:5px; padding:4px 6px 4px 9px; font-size:.8rem; }
+      .user-chip #logoutBtn{ font-size:.74rem; }
+
+      /* Compact the repeated page headers */
+      .head{ margin-bottom:10px; }
+      .head h2{ font-size:1.06rem; }
+      .head p{ font-size:.78rem; line-height:1.35; }
+
+      /* Bigger map now that the dropdown bar is gone from the flow */
+      #map{ height:64vh; min-height:380px; }
+
+      /* Subnav (sub-tabs inside a view) scrolls horizontally instead of wrapping */
+      .subnav{ overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; }
+      .subnav::-webkit-scrollbar{ display:none; }
+      .subnav button{ flex:0 0 auto; white-space:nowrap; }
+
+      .footer{ display:none; }                   /* redundant on mobile */
+    }
 </head>
 <body>
   <div class="wrap">
@@ -783,7 +935,8 @@
         <div class="user-chip">
           <span class="dot"></span>
           <span id="userName">User</span>
-          <button id="btnEnablePush" type="button" title="Enable phone alerts">🔔</button>
+          <button id="btnGlobalSearch" type="button" title="Search everything">🔍</button>
+          <button id="btnSettings" type="button" title="Display settings">⚙️</button>
           <button id="btnPostBanner" type="button" title="Post a team-wide notice" class="hidden">📢</button>
           <button id="editSpriteBtn" type="button" title="Edit your map sprite">🎨</button>
           <button id="mgrBtn" type="button" title="Manager tools" class="hidden">🛡</button>
@@ -804,6 +957,7 @@
                 <div id="weekBadge" class="conn"><span class="label"></span></div>
                 <button id="btnAddStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">🏬 Add store</button>
                 <button id="btnEditStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">✎ Edit store</button>
+                <button id="btnExportCsv" class="btn btn-ghost hidden" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">⬇ Export</button>
               </div>
             </div>
 
@@ -876,6 +1030,10 @@
               <button id="btnEditChecklist" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">✎ Edit checklist</button>
             </div>
             <p style="font-size:.74rem;color:var(--faint);margin-top:4px;">The same checklist applies to every store on the map.</p>
+            <div id="spBulk" class="hidden" style="display:flex;gap:8px;margin-top:10px;">
+              <button id="btnMarkAll" class="btn btn-ghost" type="button" style="flex:1;padding:7px 10px;font-size:.78rem;min-height:auto;">✅ Mark all</button>
+              <button id="btnResetStore" class="btn btn-ghost" type="button" style="flex:1;padding:7px 10px;font-size:.78rem;min-height:auto;">↺ Reset</button>
+            </div>
             <div id="spChecklist" style="margin-top:12px;">
               <div style="color:var(--muted);font-size:.84rem;">Select a store to see its checklist.</div>
             </div>
@@ -888,9 +1046,17 @@
             <div id="spIssuesWrap" class="hidden" style="margin-top:18px;">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
                 <span class="field-label" style="margin:0;">⚠️ Issues</span>
-                <button id="btnAddIssue" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">＋ Add issue</button>
+                <div style="display:flex;gap:6px;">
+                  <button id="btnAddDamage" class="btn btn-ghost" type="button" style="padding:7px 11px;font-size:.8rem;min-height:auto;">📋 Damage</button>
+                  <button id="btnAddIssue" class="btn btn-ghost" type="button" style="padding:7px 11px;font-size:.8rem;min-height:auto;">＋ Issue</button>
+                </div>
               </div>
               <div id="spIssues" style="margin-top:8px;"></div>
+            </div>
+
+            <div id="spGalleryWrap" class="hidden" style="margin-top:18px;">
+              <span class="field-label" style="margin:0;">📸 Store photos</span>
+              <div id="spGallery" style="display:flex;gap:8px;overflow-x:auto;margin-top:8px;padding-bottom:4px;"></div>
             </div>
           </aside>
         </div>
@@ -913,6 +1079,13 @@
           </div>
         </div>
         <div class="head"><h2>My Day</h2><p>Your assigned stores, nearest first. Tap to work the checklist and attach photos.</p></div>
+        <div id="todayBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button id="btnDaySummary" class="btn btn-ghost" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🌱 Summarize my day</button>
+          <button id="btnOptimizeRoute" class="btn btn-ghost" type="button" style="padding:8px 13px;font-size:.82rem;min-height:auto;">🧭 Optimize route</button>
+        </div>
+        <div id="dayThought" class="info-banner hidden" style="margin-bottom:12px;"></div>
+        <div id="trendBox" class="panel panel-pad" style="margin-bottom:12px;"></div>
+        <div id="leaderboardBox" class="panel panel-pad" style="margin-bottom:12px;"></div>
         <div id="todayList"><div class="hub-empty">Loading your stores…</div></div>
       </section>
 
@@ -1091,9 +1264,70 @@
         </div>
       </section>
 
-      <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Operations</div>
+      <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Ops</div>
+
+      <!-- ===== BOTTOM NAVIGATION (mobile-first one-tap nav) ===== -->
+      <nav id="bottomNav" class="bottom-nav" role="navigation" aria-label="Main">
+        <button class="bn-item active" data-view="map" type="button">
+          <span class="bn-ico">🗺</span><span class="bn-lab">Map</span>
+        </button>
+        <button class="bn-item" data-view="today" type="button">
+          <span class="bn-ico">📋</span><span class="bn-lab">My Day</span>
+        </button>
+        <button class="bn-item" data-view="products" type="button">
+          <span class="bn-ico">📦</span><span class="bn-lab">Products</span>
+        </button>
+        <button class="bn-item" data-view="careid" type="button">
+          <span class="bn-ico">🌿</span><span class="bn-lab">Care</span>
+        </button>
+        <button class="bn-item" data-view="ops" type="button">
+          <span class="bn-ico">🛠</span><span class="bn-lab">Ops</span>
+        </button>
+      </nav>
     </div>
   </div>
+
+  <div id="tourOverlay" class="tour-back hidden">
+    <div class="tour-card">
+      <div id="tourIcon" style="font-size:2.2rem;">👋</div>
+      <h3 id="tourTitle">Welcome to the Hub</h3>
+      <p id="tourBody">Let's take a 20-second tour.</p>
+      <div class="tour-dots" id="tourDots"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button id="tourSkip" class="btn btn-ghost" type="button" style="flex:1;">Skip</button>
+        <button id="tourNext" class="btn btn-primary" type="button" style="flex:2;">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="globalSearch" class="gs-back hidden">
+    <div class="gs-panel">
+      <div class="gs-bar">
+        <span class="gs-ico">🔍</span>
+        <input id="gsInput" type="search" placeholder="Search stores, SKUs, plants, pests…" autocomplete="off" />
+        <button id="gsClose" type="button" aria-label="Close">✕</button>
+      </div>
+      <div id="gsResults" class="gs-results"><div class="gs-hint">Type to search across the whole hub.</div></div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal-back"><div class="modal">
+    <h3>⚙️ Display settings</h3>
+    <div class="fld"><label class="field-label">Theme</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" data-theme-set="dark" type="button" style="flex:1;">🌙 Dark</button>
+        <button class="btn btn-ghost" data-theme-set="light" type="button" style="flex:1;">☀️ Light</button>
+      </div>
+    </div>
+    <div class="fld"><label class="field-label">Text size</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" data-text-set="normal" type="button" style="flex:1;">A</button>
+        <button class="btn btn-ghost" data-text-set="large" type="button" style="flex:1;font-size:1.1rem;">A+</button>
+        <button class="btn btn-ghost" data-text-set="xlarge" type="button" style="flex:1;font-size:1.25rem;">A++</button>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-primary" data-close="settingsModal" type="button">Done</button></div>
+  </div></div>
 
   <div id="identifyModal" class="modal-back"><div class="modal">
     <h3>📸 Plant identifier</h3>
@@ -1149,6 +1383,34 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="issueEditor" type="button">Cancel</button>
       <button id="issueSave" class="btn btn-primary" type="button">Save issue</button>
+    </div>
+  </div></div>
+
+  <div id="damageEditor" class="modal-back"><div class="modal">
+    <h3>📋 Report damage / claim</h3>
+    <div class="latin" id="damageStoreLabel">Log damaged or unsellable product for this store.</div>
+    <img id="damagePhotoPreview" class="care-edit-img" alt="" style="display:none;" />
+    <input id="damagePhotoFile" type="file" accept="image/*" capture="environment" class="hidden" />
+    <button id="damagePhotoBtn" class="btn btn-ghost" type="button" style="width:100%;margin-bottom:10px;">📷 Add photo</button>
+    <div class="care-edit-grid two">
+      <div class="fld"><label class="field-label" for="damageSku">SKU / item</label><input id="damageSku" type="text" placeholder="SKU or name" /></div>
+      <div class="fld"><label class="field-label" for="damageQty">Quantity</label><input id="damageQty" type="number" min="1" value="1" /></div>
+    </div>
+    <div class="fld"><label class="field-label" for="damageReason">Reason</label>
+      <select id="damageReason">
+        <option value="Cold damage">Cold damage</option>
+        <option value="Heat / drought">Heat / drought</option>
+        <option value="Pest / disease">Pest / disease</option>
+        <option value="Broken / physical">Broken / physical</option>
+        <option value="Overwatered / root rot">Overwatered / root rot</option>
+        <option value="Past shelf life">Past shelf life</option>
+        <option value="Other">Other</option>
+      </select></div>
+    <div class="fld"><label class="field-label" for="damageNotes">Notes</label>
+      <textarea id="damageNotes" placeholder="Anything else worth recording…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="damageEditor" type="button">Cancel</button>
+      <button id="damageSave" class="btn btn-primary" type="button">Submit claim</button>
     </div>
   </div></div>
 
@@ -1384,6 +1646,7 @@
 
     <!-- FEED -->
     <div id="hub-feed" class="hub-view">
+      <button id="btnWeeklyDigest" class="btn btn-ghost hidden" type="button" style="margin:0 0 8px;padding:7px 12px;font-size:.8rem;min-height:auto;width:100%;">🌱 Post weekly digest to feed</button>
       <div id="feedLog" class="hub-log"></div>
       <div id="feedPreview" class="feed-preview hidden">
         <img id="feedPreviewImg" alt="" />
@@ -1448,7 +1711,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import {
   getDatabase, ref, onValue, set, update, push, remove, get, child, serverTimestamp, goOnline, onDisconnect
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 /* ---------- Firebase config ---------- */
 const firebaseConfig = {
@@ -1461,13 +1723,7 @@ const firebaseConfig = {
   appId: "1:24804620954:web:a31d9e25aced43f4aabd23"
 };
 
-/* Your Web Push certificate key pair (VAPID public key). Generate it in the
-   Firebase console: Project settings → Cloud Messaging → Web Push certificates.
-   Paste the key string between the quotes below. Until you do, the 🔔 button will
-   explain that push isn't configured yet. */
-const VAPID_KEY = "BGzGK9qDmcktXXGMqcTPS-YnlfDkdbyLqJG2yWZgCvfXSqhrRKntFm6W9kI0cSF2sC0Ty8Cg-e4PwZE9JF1T2YY";
-
-let db = null, fbApp = null, fbMessaging = null;
+let db = null, fbApp = null;
 try {
   fbApp = initializeApp(firebaseConfig);
   db = getDatabase(fbApp);
@@ -1868,6 +2124,8 @@ function applyAdminUI(){
   const mgr=$("mgrBtn"); if(mgr) mgr.classList.add("hidden");
   // managers can post team banners (items 5 & 6)
   const pb=$("btnPostBanner"); if(pb) pb.classList.toggle("hidden", !me.isManager);
+  const ex=$("btnExportCsv"); if(ex) ex.classList.toggle("hidden", !me.isManager);
+  const wd=$("btnWeeklyDigest"); if(wd) wd.classList.toggle("hidden", !me.isManager);
   if(typeof renderBanners==="function") renderBanners();   // refresh delete buttons by role
   if(typeof applyCareAdminBars==="function") applyCareAdminBars();   // item 13-care add buttons
   if(typeof rerenderCare==="function") rerenderCare();              // show/hide per-card edit buttons
@@ -1879,8 +2137,9 @@ const VIEW_LABELS = { map:"🗺 Map", today:"📋 My Day", products:"📦 Produc
 function showOnlyView(name){
   curView = name;
   VIEWS.forEach(v => setVis($("view-"+v), v===name));
-  /* update directory dropdown state */
+  /* update directory dropdown state (legacy) + bottom nav */
   $$('.dir-item[data-view]').forEach(b => b.classList.toggle("active", b.dataset.view===name));
+  $$('.bn-item[data-view]').forEach(b => b.classList.toggle("active", b.dataset.view===name));
   const cur=$("dirCurrent"); if(cur) cur.textContent = "☰ Options";
   closeDirMenu();
   try { sessionStorage.setItem("hub_view", name); } catch(e){}
@@ -1888,22 +2147,34 @@ function showOnlyView(name){
   if(name==="today" && typeof renderToday==="function") renderToday();
   window.scrollTo({ top:0, behavior:"smooth" });
 }
+function wireBottomNav(){
+  $$('#bottomNav .bn-item[data-view]').forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      if(navigator.vibrate) try{ navigator.vibrate(8); }catch(e){}
+      showOnlyView(btn.dataset.view);
+    });
+  });
+}
 function closeDirMenu(){
   const m=$("dirMenu"); if(m) m.classList.remove("show");
   const t=$("dirToggle"); if(t) t.setAttribute("aria-expanded","false");
 }
 function showSplash(){
   setVis($("app"),false); setVis($("view-splash"),true); setVis($("view-login"),false);
+  document.body.classList.remove("has-bottomnav");
   try { sessionStorage.removeItem("hub_view"); } catch(e){}
 }
 function showLogin(){
   setVis($("view-splash"),false); setVis($("view-login"),true); setVis($("app"),false);
+  document.body.classList.remove("has-bottomnav");
   $("loginError").textContent=""; setTimeout(()=>$("loginUser")?.focus(),0);
 }
 function showApp(view){
   setVis($("view-splash"),false); setVis($("view-login"),false); setVis($("app"),true);
+  document.body.classList.add("has-bottomnav");
   /* Map is the home page — always default to it unless an explicit other view was saved. */
   showOnlyView(view||"map");
+  if(typeof maybeStartTour==="function") maybeStartTour();
 }
 /* ---------- User identity + sprite ---------- */
 const SPRITE_EMOJIS = ["🙂","🌱","🌿","🍃","🌵","🌻","🧑‍🌾","👷","🦊","🐝","🐢","🦉","🐙","🚐","⭐","🔥","💧","🍀","🌸","🌴"];
@@ -2968,7 +3239,51 @@ function popupHtml(s){
   const terr = s.territory ? ` · Terr. ${esc(s.territory)}` : "";
   const a = assignments[s.id];
   const who = (a && a.uid) ? `<br><span style="color:var(--muted)">${esc(a.emoji||'🙂')} ${esc(a.name||'User')}</span>` : "";
-  return `<b>#${esc(s.id)}</b> — ${esc(s.name)}${terr}${addr}${who}<br>Checklist ${pct}% complete`;
+  const lv = lastVisitText(s);
+  const lvHtml = lv ? `<br><span style="color:var(--muted);font-size:.92em;">🕓 ${esc(lv)}</span>` : "";
+  return `<b>#${esc(s.id)}</b> — ${esc(s.name)}${terr}${addr}${who}<br>Checklist ${pct}% complete${lvHtml}`;
+}
+
+/* ----- CSV export (managers) ----- */
+function csvCell(v){ const s=String(v==null?"":v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function downloadCsv(filename, rows){
+  const csv=rows.map(r=>r.map(csvCell).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+function exportData(){
+  if(!requireManager("export data")) return;
+  const choice=window.prompt("Export which report?\n\n1 = Store completion\n2 = Open issues\n3 = Assignments\n4 = Damage claims\n\nType 1-4:", "1");
+  if(!choice) return;
+  const day=todayKey();
+  if(choice.trim()==="1"){
+    const rows=[["Store ID","Name","Territory","Address","Completion %","Last worked by","Last worked"]];
+    Object.values(stores).sort((a,b)=>(+a.id||0)-(+b.id||0)).forEach(s=>{
+      const lv=s.lastVisit||{};
+      rows.push([s.id,s.name,s.territory||"",s.address||"",Math.round(completion(s)*100),lv.name||"",lv.ts?new Date(lv.ts).toLocaleString():""]);
+    });
+    downloadCsv(`completion_${day}.csv`, rows);
+  } else if(choice.trim()==="2"){
+    const rows=[["Store ID","Store","Issue","Date","Reported by"]];
+    Object.keys(storeIssues||{}).forEach(sid=>{
+      const m=storeIssues[sid]||{};
+      Object.values(m).forEach(it=>{ if(it) rows.push([sid,(stores[sid]&&stores[sid].name)||"",it.text||"",it.date||"",it.name||""]); });
+    });
+    downloadCsv(`issues_${day}.csv`, rows);
+  } else if(choice.trim()==="3"){
+    const rows=[["Store ID","Store","Assigned to"]];
+    Object.keys(assignments||{}).forEach(sid=>{ const a=assignments[sid]; if(a&&a.uid) rows.push([sid,(stores[sid]&&stores[sid].name)||"",a.name||""]); });
+    downloadCsv(`assignments_${day}.csv`, rows);
+  } else if(choice.trim()==="4"){
+    const rows=[["Store ID","Store","SKU/Item","Qty","Reason","Notes","Date","Reported by"]];
+    Object.keys(damageClaims||{}).forEach(sid=>{
+      const m=damageClaims[sid]||{};
+      Object.values(m).forEach(d=>{ if(d) rows.push([sid,(stores[sid]&&stores[sid].name)||"",d.sku||"",d.qty||"",d.reason||"",d.notes||"",d.date||"",d.name||""]); });
+    });
+    downloadCsv(`damage_claims_${day}.csv`, rows);
+  }
 }
 
 function setItemChecked(storeId, itemId, on){
@@ -2978,21 +3293,80 @@ function setItemChecked(storeId, itemId, on){
   if(db){
     if(on) update(ref(db,`stores/${storeId}/checked`),{[itemId]:true}).catch(console.error);
     else   remove(ref(db,`stores/${storeId}/checked/${itemId}`)).catch(console.error);
+    recordVisit(storeId);
   }
   refreshMarker(storeId);
   updateSummary();
+}
+/* Stamp who last worked a store and when. */
+/* ----- Store photo gallery ----- */
+function renderStoreGallery(){
+  const wrap=$("spGalleryWrap"), grid=$("spGallery");
+  if(!grid || !selected){ if(wrap) setVis(wrap,false); return; }
+  const s=stores[selected]; const photos=s&&s.photos||{};
+  const entries=Object.keys(photos).map(itemId=>({ itemId, src:photos[itemId] })).filter(e=>e.src);
+  if(!entries.length){ setVis(wrap,false); grid.innerHTML=""; return; }
+  setVis(wrap,true);
+  grid.innerHTML="";
+  entries.forEach(e=>{
+    const itm=checklist.find(c=>c.id===e.itemId);
+    const img=document.createElement("img");
+    img.src=e.src; img.alt=itm?itm.text:""; img.title=itm?itm.text:"";
+    img.style.cssText="width:72px;height:72px;flex:0 0 auto;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;";
+    img.addEventListener("click",()=>openLightbox(e.src));
+    grid.appendChild(img);
+  });
+}
+
+/* ----- Bulk checklist actions ----- */
+function markAllItems(){
+  if(!selected || !checklist.length) return;
+  const s=stores[selected]; s.checked=s.checked||{};
+  const map_={};
+  checklist.forEach(it=>{ s.checked[it.id]=true; map_[it.id]=true; });
+  if(db){ update(ref(db,`stores/${selected}/checked`), map_).catch(console.error); recordVisit(selected); }
+  refreshMarker(selected); updateSummary(); renderChecklistPanel();
+}
+function resetStoreChecks(){
+  if(!selected) return;
+  if(!window.confirm("Reset this store's checklist back to zero?")) return;
+  const s=stores[selected]; s.checked={};
+  if(db){ remove(ref(db,`stores/${selected}/checked`)).catch(console.error); recordVisit(selected); }
+  refreshMarker(selected); updateSummary(); renderChecklistPanel();
+}
+
+function recordVisit(storeId){
+  if(!db || !me.uid) return;
+  const v={ uid:me.uid, name:me.name, ts:Date.now() };
+  stores[storeId] = stores[storeId] || {};
+  stores[storeId].lastVisit = v;
+  update(ref(db,`stores/${storeId}`),{ lastVisit:v }).catch(()=>{});
+}
+function lastVisitText(s){
+  const v=s && s.lastVisit;
+  if(!v || !v.ts) return "";
+  const days=Math.floor((Date.now()-v.ts)/86400000);
+  let when;
+  if(days<=0) when="today";
+  else if(days===1) when="yesterday";
+  else when=days+" days ago";
+  return `Last worked ${when} by ${v.name||"someone"}`;
 }
 
 function renderChecklistPanel(){
   const wrap=$("spChecklist");
   if(!selected){ wrap.innerHTML=""; return; }
-  const s=stores[selected]; const checked=s.checked||{};
+  const s=stores[selected]; const checked=s.checked||{}; const photos=s.photos||{};
   if(!checklist.length){
     wrap.innerHTML=`<div style="color:var(--muted);font-size:.84rem;">No checklist items yet.${editMode?" Use “Add item” to build the shared list.":""}</div>`;
     return;
   }
   wrap.innerHTML = checklist.map(it=>{
     const on = !!checked[it.id];
+    const photo = photos[it.id];
+    const photoCtrl = photo
+      ? `<img class="cl-photo-thumb" data-photo-view="${esc(it.id)}" src="${esc(photo)}" alt="proof" title="Tap to view · long-press the camera to replace">`
+      : `<button class="cl-photo-btn" data-photo-add="${esc(it.id)}" title="Add a proof photo" type="button">📷</button>`;
     const adminBtns = editMode
       ? `<span class="cl-admin">
            <button class="cl-icon" data-edit="${esc(it.id)}" title="Edit" type="button">✎</button>
@@ -3001,6 +3375,7 @@ function renderChecklistPanel(){
     return `<label class="cl-live-item">
       <input type="checkbox" data-item="${esc(it.id)}" ${on?"checked":""}>
       <span class="cl-live-text${on?" done":""}">${esc(it.text)}</span>
+      ${photoCtrl}
       ${adminBtns}
     </label>`;
   }).join("");
@@ -3008,8 +3383,51 @@ function renderChecklistPanel(){
   $$('input[data-item]', wrap).forEach(cb=>{
     cb.addEventListener("change",()=> setItemChecked(selected, cb.dataset.item, cb.checked));
   });
+  $$('[data-photo-add]', wrap).forEach(b=> b.addEventListener("click",(e)=>{ e.preventDefault(); addItemPhoto(b.dataset.photoAdd); }));
+  $$('[data-photo-view]', wrap).forEach(im=>{
+    im.addEventListener("click",(e)=>{ e.preventDefault(); openLightbox(im.src); });
+    /* long-press (or right-click) a thumbnail to replace/remove it */
+    let lpTimer=null;
+    im.addEventListener("touchstart",()=>{ lpTimer=setTimeout(()=>itemPhotoMenu(im.dataset.photoView), 550); }, {passive:true});
+    im.addEventListener("touchend",()=>{ if(lpTimer) clearTimeout(lpTimer); }, {passive:true});
+    im.addEventListener("contextmenu",(e)=>{ e.preventDefault(); itemPhotoMenu(im.dataset.photoView); });
+  });
   $$('[data-edit]', wrap).forEach(b=> b.addEventListener("click",()=> openItemEditor(b.dataset.edit)));
   $$('[data-del]', wrap).forEach(b=> b.addEventListener("click",()=> deleteItem(b.dataset.del)));
+}
+
+/* ----- Checklist proof photos (stored per store + item) ----- */
+let _photoTargetItem=null;
+function addItemPhoto(itemId){
+  if(!selected) return;
+  _photoTargetItem=itemId;
+  let inp=$("clPhotoInput");
+  if(!inp){
+    inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    inp.setAttribute("capture","environment"); inp.id="clPhotoInput"; inp.className="hidden";
+    document.body.appendChild(inp);
+    inp.addEventListener("change", async ()=>{
+      const f=inp.files && inp.files[0]; inp.value="";
+      if(!f || !_photoTargetItem || !selected) return;
+      try{
+        const data=await compressImage(f, 1000, 0.7);
+        const s=stores[selected]; s.photos=s.photos||{}; s.photos[_photoTargetItem]=data;
+        if(db) set(ref(db,`stores/${selected}/photos/${_photoTargetItem}`), data).catch(err=>{ console.error(err); alert("Couldn't save the photo (it may be too large)."); });
+        renderChecklistPanel();
+      }catch(err){ console.error(err); alert("Couldn't read that photo."); }
+    });
+  }
+  inp.click();
+}
+function itemPhotoMenu(itemId){
+  if(!selected) return;
+  const replace=window.confirm("Replace this proof photo?\n\nOK = take/choose a new one\nCancel = keep it (to remove instead, press Cancel then confirm removal)");
+  if(replace){ addItemPhoto(itemId); return; }
+  if(window.confirm("Remove this proof photo?")){
+    const s=stores[selected]; if(s.photos) delete s.photos[itemId];
+    if(db) remove(ref(db,`stores/${selected}/photos/${itemId}`)).catch(console.error);
+    renderChecklistPanel();
+  }
 }
 
 function selectStore(id){
@@ -3020,10 +3438,15 @@ function selectStore(id){
   $("spProgressBar").style.width=pct+"%";
   $("spProgressBar").style.background=statusColor(storeStatus(s));
   setVis($("spProgressWrap"), true);
+  setVis($("spBulk"), checklist.length>0);
   renderAssignRow(id);
   renderChecklistPanel();
   setVis($("spIssuesWrap"), true);
   renderIssuesPanel();
+  renderStoreGallery();
+  /* last-visit line under the title */
+  const lv=lastVisitText(s);
+  $("spSub").textContent = lv ? (s.name+" · "+lv) : s.name;
   if(map && markers[id]){ map.panTo([s.lat,s.lng]); markers[id].openPopup(); }
   $("spTitle").focus();
 }
@@ -3091,15 +3514,224 @@ function haversine(a,b){
 function myAssignedStoreIds(){
   return Object.keys(assignments).filter(id=> assignments[id] && assignments[id].uid===me.uid && stores[id]);
 }
+let todayOrder=null;   // optimized visiting order (set by Optimize route)
+
+/* Nearest-neighbour ordering of the assigned stores, starting from the user's
+   current GPS position if known, otherwise from the first store. */
+function optimizeRoute(){
+  const ids=myAssignedStoreIds().filter(id=>stores[id] && stores[id].lat!=null && stores[id].lng!=null);
+  if(ids.length<2){ alert("You need at least two located stores to optimize a route."); return; }
+  const remaining=ids.slice();
+  const order=[];
+  let cur = lastPos ? { lat:lastPos.lat, lng:lastPos.lng } : { lat:stores[remaining[0]].lat, lng:stores[remaining[0]].lng };
+  while(remaining.length){
+    let bi=0, bd=Infinity;
+    remaining.forEach((id,i)=>{ const d=haversine(cur, stores[id]); if(d<bd){ bd=d; bi=i; } });
+    const next=remaining.splice(bi,1)[0];
+    order.push(next); cur={ lat:stores[next].lat, lng:stores[next].lng };
+  }
+  todayOrder=order;
+  renderToday();
+  /* Offer to open the whole route in Google Maps (free, opens the maps app). */
+  const origin = lastPos ? `${lastPos.lat},${lastPos.lng}` : "";
+  const pts = order.map(id=>`${stores[id].lat},${stores[id].lng}`);
+  const dest = pts[pts.length-1];
+  const waypoints = pts.slice(0,-1).join("|");
+  let url="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(dest);
+  if(origin) url+="&origin="+encodeURIComponent(origin);
+  if(waypoints) url+="&waypoints="+encodeURIComponent(waypoints);
+  url+="&travelmode=driving";
+  if(window.confirm("Route optimized — "+order.length+" stops in order.\n\nOpen the full route in Google Maps?")){
+    window.open(url,"_blank","noopener");
+  }
+}
+
+/* Sprout reads the user's real day data and writes a short briefing. */
+async function summarizeDay(){
+  const ids=myAssignedStoreIds();
+  const box=$("dayThought");
+  setVis(box,true);
+  if(!ids.length){ box.innerHTML="You have no stores assigned today."; return; }
+  const done=ids.filter(id=>completion(stores[id])>=1).length;
+  const open=ids.length-done;
+  let nearest=null, nd=Infinity;
+  if(lastPos){ ids.forEach(id=>{ if(stores[id].lat!=null){ const d=haversine(lastPos,stores[id]); if(d<nd){ nd=d; nearest=id; } } }); }
+  let issueCount=0;
+  ids.forEach(id=>{ if(typeof storeHasIssues==="function" && storeHasIssues(id)) issueCount++; });
+  box.innerHTML='<span class="identify-loading"><span class="typing"><span></span><span></span><span></span></span> Sprout is reviewing your day…</span>';
+  const facts={
+    name: me.name, totalStores: ids.length, completed: done, remaining: open,
+    storesWithOpenIssues: issueCount,
+    nearestStore: nearest ? `#${nearest} ${stores[nearest].name} (${(nd*0.621371).toFixed(1)} mi)` : "unknown (no GPS yet)"
+  };
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514", max_tokens:300,
+        system:"You are Sprout Bot for a Home Depot houseplant-area field merchandiser. Given the facts as JSON, write a brief, friendly 2-3 sentence start-of-day briefing. Be practical and encouraging. Suggest where to start. No markdown, no lists.",
+        messages:[{ role:"user", content:"Here are today's facts: "+JSON.stringify(facts) }]
+      })
+    });
+    if(!res.ok) throw new Error("API "+res.status);
+    const data=await res.json();
+    const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    box.innerHTML="🌱 "+esc(text||defaultDayLine(facts));
+  }catch(e){
+    console.warn("day summary fell back to local:",e);
+    box.innerHTML="🌱 "+esc(defaultDayLine(facts));
+  }
+}
+function defaultDayLine(f){
+  if(f.remaining===0) return `All ${f.totalStores} of your stores are complete — nice work, ${f.name.split(" ")[0]}!`;
+  return `You have ${f.remaining} of ${f.totalStores} stores left today`+
+    (f.nearestStore.startsWith("#")?`, and the closest is ${f.nearestStore}`:``)+
+    (f.storesWithOpenIssues?`. Heads up: ${f.storesWithOpenIssues} have open issues.`:`.`);
+}
+function initTodayTools(){
+  const o=$("btnOptimizeRoute"); if(o) o.addEventListener("click", optimizeRoute);
+  const s=$("btnDaySummary"); if(s) s.addEventListener("click", summarizeDay);
+}
+
+/* ---------- Weekly digest (manager posts a summary to the feed) ---------- */
+async function postWeeklyDigest(){
+  if(!requireManager("post the weekly digest")) return;
+  if(!db){ alert("The digest needs the database connection."); return; }
+  const ids=Object.keys(stores);
+  const total=ids.length;
+  const done=ids.filter(id=>completion(stores[id])>=1).length;
+  /* completion by district */
+  const byDist={};
+  ids.forEach(id=>{ const t=String(stores[id].territory||"?"); byDist[t]=byDist[t]||{t:0,d:0}; byDist[t].t++; if(completion(stores[id])>=1) byDist[t].d++; });
+  const distLines=Object.keys(byDist).sort().map(t=>`District ${t}: ${Math.round(byDist[t].d/byDist[t].t*100)}%`);
+  let openIssues=0; Object.values(storeIssues||{}).forEach(m=>{ openIssues+=Object.keys(m||{}).length; });
+  const facts={ weekOf:weekKey(), totalStores:total, completed:done, overallPct:total?Math.round(done/total*100):0, byDistrict:distLines, openIssues };
+
+  $("btnWeeklyDigest").disabled=true;
+  let text;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514", max_tokens:400,
+        system:"You are Sprout Bot writing a brief, upbeat weekly team digest for a Home Depot houseplant-area merchandising team. 3-4 sentences. Mention overall completion, call out the strongest district, and note open issues if any. Friendly and motivating. No markdown headers or bullet lists.",
+        messages:[{ role:"user", content:"Weekly facts: "+JSON.stringify(facts) }]
+      })
+    });
+    if(!res.ok) throw new Error("API "+res.status);
+    const data=await res.json();
+    text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+  }catch(e){
+    console.warn("digest fell back to local:",e);
+    text=`Weekly digest (${facts.weekOf}): ${facts.overallPct}% of ${total} stores complete (${done} done). `+
+      (distLines.length?`By district — ${distLines.join(", ")}. `:"")+
+      (openIssues?`${openIssues} open issue${openIssues===1?"":"s"} to close out.`:`No open issues — great work!`);
+  }
+  const node=push(ref(db,"feed"));
+  set(node, { uid:me.uid, name:"Sprout Bot", emoji:"🌱", color:"#5ee0d0", text:"📊 "+text, kind:"post", ts:Date.now() })
+    .catch(err=>{ console.error(err); alert("Couldn't post the digest."); });
+  $("btnWeeklyDigest").disabled=false;
+  showToast("Weekly digest posted to the feed","🌱");
+}
+function initWeeklyDigest(){
+  const b=$("btnWeeklyDigest"); if(b) b.addEventListener("click", postWeeklyDigest);
+}
+
+/* ---------- Completion history + trend sparkline ---------- */
+/* Records ONE snapshot per day of how many stores are 100% complete, so the
+   trend chart fills in over time. Stored under history/<YYYY-MM-DD>. */
+let trendData={};
+function recordDailySnapshot(){
+  if(!db) return;
+  const ids=Object.keys(stores); if(!ids.length) return;
+  const total=ids.length;
+  const done=ids.filter(id=>completion(stores[id])>=1).length;
+  const day=todayKey();
+  /* last write of the day wins — cheap and gives an end-of-day-ish number */
+  set(ref(db,"history/"+day), { total, done, ts:Date.now() }).catch(()=>{});
+}
+/* Throttle: write at most once every few minutes per session. */
+let _lastSnapTs=0;
+function maybeSnapshot(){
+  const now=Date.now();
+  if(now-_lastSnapTs < 5*60*1000) return;   // 5 min
+  _lastSnapTs=now;
+  recordDailySnapshot();
+}
+function renderTrend(){
+  const box=$("trendBox"); if(!box) return;
+  const days=Object.keys(trendData).sort();
+  const recent=days.slice(-14);
+  if(recent.length<2){
+    box.innerHTML='<div class="gs-hint" style="padding:10px;">Trend will appear here after a couple of days of activity.</div>';
+    return;
+  }
+  const pts=recent.map(d=>{ const r=trendData[d]; return r&&r.total?Math.round(r.done/r.total*100):0; });
+  const w=Math.max(220, recent.length*26), h=70, pad=6;
+  const max=100, min=0;
+  const x=i=> pad + i*((w-2*pad)/(recent.length-1));
+  const y=v=> pad + (1-(v-min)/(max-min))*(h-2*pad);
+  const line=pts.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const area=`${line} L${x(pts.length-1).toFixed(1)},${(h-pad).toFixed(1)} L${x(0).toFixed(1)},${(h-pad).toFixed(1)} Z`;
+  const last=pts[pts.length-1], first=pts[0];
+  const delta=last-first;
+  box.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+      <span class="field-label" style="margin:0;">Completion trend (${recent.length} days)</span>
+      <span style="font-weight:800;color:${delta>=0?'var(--good)':'var(--bad)'};font-size:.82rem;">${last}% ${delta>=0?'▲':'▼'}${Math.abs(delta)}</span>
+    </div>
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:70px;display:block;">
+      <path d="${area}" fill="var(--accent-soft)"></path>
+      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+    </svg>`;
+}
+function initTrend(){
+  if(!db) return;
+  onValue(ref(db,"history"), snap=>{ trendData=snap.val()||{}; renderTrend(); }, err=>console.error("history read:",err));
+}
+
+/* ---------- Team leaderboard (by completion of assigned stores) ---------- */
+function renderLeaderboard(){
+  const box=$("leaderboardBox"); if(!box) return;
+  /* Tally per assigned person: assigned count + completed count. */
+  const tally={};
+  Object.keys(assignments||{}).forEach(sid=>{
+    const a=assignments[sid]; if(!a||!a.uid) return;
+    tally[a.uid]=tally[a.uid]||{ name:a.name||"User", emoji:a.emoji||"🙂", total:0, done:0 };
+    tally[a.uid].total++;
+    if(stores[sid] && completion(stores[sid])>=1) tally[a.uid].done++;
+  });
+  const rows=Object.values(tally).filter(r=>r.total>0)
+    .map(r=>({ ...r, pct: Math.round(r.done/r.total*100) }))
+    .sort((a,b)=> b.pct-a.pct || b.done-a.done);
+  if(rows.length<2){ box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const medals=["🥇","🥈","🥉"];
+  box.innerHTML=`<div class="field-label" style="margin:0 0 8px;">🏆 Team leaderboard · this week</div>`+
+    rows.slice(0,8).map((r,i)=>{
+      const me_=r.name===me.name;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;${me_?'font-weight:800;':''}">
+        <span style="width:22px;text-align:center;">${medals[i]||(i+1)}</span>
+        <span>${esc(r.emoji)}</span>
+        <span style="flex:1;min-width:0;color:var(--heading);">${esc(r.name)}${me_?' (you)':''}</span>
+        <span style="color:var(--muted);font-size:.8rem;">${r.done}/${r.total}</span>
+        <span style="font-weight:800;color:${r.pct>=100?'var(--good)':'var(--accent)'};min-width:42px;text-align:right;">${r.pct}%</span>
+      </div>`;
+    }).join("");
+}
+
 function renderToday(){
   const wrap=$("todayList"); if(!wrap) return;
+  if(typeof renderLeaderboard==="function") renderLeaderboard();
   let ids=myAssignedStoreIds();
   if(!ids.length){
     wrap.innerHTML='<div class="hub-empty">No stores assigned to you yet. A manager can assign stores from the map (tap a store → Assign).</div>';
     return;
   }
-  // sort by distance from current position if known
-  if(lastPos){
+  // If a route was optimized, use that order; else sort by distance, else by name.
+  if(todayOrder && todayOrder.length && todayOrder.every(id=>ids.includes(id)) && todayOrder.length===ids.length){
+    ids=todayOrder.slice();
+  } else if(lastPos){
     ids.sort((a,b)=> haversine(lastPos,stores[a]) - haversine(lastPos,stores[b]));
   } else {
     ids.sort((a,b)=> (stores[a].name||"").localeCompare(stores[b].name||""));
@@ -3129,8 +3761,29 @@ function renderToday(){
       card.classList.toggle("open");
       if(card.classList.contains("open")) renderTodayItems(body, id);
     });
+    /* Swipe: right → mark all complete, left → directions */
+    addSwipe(card, id);
     wrap.appendChild(card);
   });
+}
+function addSwipe(card, id){
+  let sx=0, sy=0, dragging=false, moved=0;
+  card.addEventListener("touchstart",(e)=>{ if(e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; dragging=true; moved=0; card.style.transition="none"; }, {passive:true});
+  card.addEventListener("touchmove",(e)=>{
+    if(!dragging) return;
+    const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx)){ dragging=false; card.style.transform=""; return; }  // vertical scroll
+    moved=dx;
+    card.style.transform="translateX("+Math.max(-90,Math.min(90,dx))+"px)";
+    card.style.background = dx>40 ? "rgba(61,220,151,.16)" : dx<-40 ? "rgba(61,169,252,.16)" : "";
+  }, {passive:true});
+  card.addEventListener("touchend",()=>{
+    if(!dragging) return; dragging=false;
+    card.style.transition="transform .2s, background .2s";
+    card.style.transform=""; card.style.background="";
+    if(moved>70){ const prev=selected; selected=id; markAllItems(); selected=prev; renderToday(); }
+    else if(moved<-70){ const s=stores[id]; if(s&&s.lat!=null) window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving`,"_blank","noopener"); }
+  }, {passive:true});
 }
 function renderTodayItems(body, id){
   const s=stores[id]; if(!s) return;
@@ -3338,12 +3991,27 @@ function deleteItem(itemId){
   if(!db){ refreshAllMarkers(); renderChecklistPanel(); }
 }
 
+let lastSyncTs=0, syncTimer=null;
 function setConn(state, detail){
   const el=$("connStatus"); if(!el) return;
   el.classList.remove("live","off");
-  if(state==="live"){ el.classList.add("live"); el.querySelector(".label").textContent="Live · synced"; }
+  if(state==="live"){
+    el.classList.add("live");
+    lastSyncTs=Date.now();
+    el.querySelector(".label").textContent="Live · synced just now";
+    if(!syncTimer) syncTimer=setInterval(updateSyncLabel, 30000);
+  }
   else if(state==="denied"){ el.classList.add("off"); el.querySelector(".label").textContent="⚠ Database access denied — check Firebase rules"; }
   else { el.classList.add("off"); el.querySelector(".label").textContent = detail || "Offline · local only"; }
+}
+function updateSyncLabel(){
+  const el=$("connStatus"); if(!el || !el.classList.contains("live") || !lastSyncTs) return;
+  const secs=Math.round((Date.now()-lastSyncTs)/1000);
+  let t;
+  if(secs<45) t="just now";
+  else if(secs<3600) t=Math.round(secs/60)+" min ago";
+  else t=Math.round(secs/3600)+" hr ago";
+  el.querySelector(".label").textContent="Live · synced "+t;
 }
 
 /* Stores are baked into the page (EMBEDDED_STORES) — no external CSV required. */
@@ -3384,6 +4052,9 @@ async function initMap(){
   $("itemText").addEventListener("keydown", e=>{ if(e.key==="Enter") saveItem(); });
 
   $("btnEditChecklist").addEventListener("click", toggleEditMode);
+  $("btnMarkAll").addEventListener("click", markAllItems);
+  $("btnResetStore").addEventListener("click", resetStoreChecks);
+  $("btnExportCsv").addEventListener("click", exportData);
   $("btnDoneEditing").addEventListener("click", ()=>{ editMode=false; applyAdminUI(); });
   $("btnAddStore").addEventListener("click", ()=>openStoreEditor("add"));
   $("btnEditStore").addEventListener("click", ()=>openStoreEditor("edit"));
@@ -3438,9 +4109,11 @@ async function initMap(){
           if(live.territory!=null) stores[id].territory=live.territory;
           stores[id].checked = live.checked || {};
           stores[id].photos = live.photos || {};
+          if(live.lastVisit) stores[id].lastVisit = live.lastVisit;
         });
         refreshAllMarkers();
         drawTerritories();
+        if(typeof recordDailySnapshot==="function") maybeSnapshot();
         if(selected){ renderChecklistPanel(); selectStore(selected); }
         if(!storesFitted){ storesFitted=true; fitToStores(); }
         maybeWeeklyReset();          // clear everything if a new week (Monday) has begun
@@ -3697,16 +4370,11 @@ function writePresence(){
   }catch(e){ console.error(e); }
 }
 let presenceWriteFailed=false;
-/* A reasonable starting point so the sprite appears instantly, before GPS resolves:
-   last saved location → current map center → store roster centroid. */
-function seedPosition(){
-  try{
-    const saved=localStorage.getItem("hub_lastpos");
-    if(saved){ const o=JSON.parse(saved); if(o && o.lat!=null && o.lng!=null) return o; }
-  }catch(e){}
-  if(map){ const c=map.getCenter(); return { lat:+c.lat.toFixed(6), lng:+c.lng.toFixed(6) }; }
-  return { lat:42.0, lng:-88.3 };
-}
+/* (Removed seedPosition: the app no longer broadcasts a guessed location — it
+   only shares a real GPS fix, so there's nothing to seed.) */
+/* Per-user key so a shared device doesn't leak one person's last location to
+   the next person who signs in. */
+function lastPosKey(){ return "hub_lastpos_"+(me.username||"anon"); }
 function startPresence(){
   if(!hasSprite()) return;          // need a sprite first
   presenceOn=true;
@@ -3715,29 +4383,39 @@ function startPresence(){
     presenceRef=ref(db,"presence/"+me.uid);
     try{ onDisconnect(presenceRef).remove(); }catch(e){}
   }
-  /* Show the sprite RIGHT AWAY at a seeded position, then refine with GPS. */
-  if(!lastPos) lastPos = seedPosition();
-  writePresence();
 
   if(!("geolocation" in navigator)){
-    if($("locBtn")) $("locBtn").textContent="📍 Shown (no GPS)";
+    /* No GPS at all — we can't honestly place this person, so don't broadcast a
+       guessed location. Let them know. */
+    presenceOn=false; setLocBtn(false);
+    if($("locBtn")) $("locBtn").textContent="📍 No GPS on this device";
     return;
   }
+
+  if($("locBtn")) $("locBtn").textContent="📍 Locating…";
   if(geoWatchId!=null){ try{ navigator.geolocation.clearWatch(geoWatchId); }catch(e){} }
   geoWatchId=navigator.geolocation.watchPosition(pos=>{
+    /* Only accept a reasonably accurate fix. Very large accuracy values usually
+       mean a coarse IP/wifi guess that can be hundreds of miles off — skip those
+       so we never park someone in the wrong place. */
+    const acc = pos.coords.accuracy;
+    if(acc!=null && acc>20000){ console.warn("ignoring low-accuracy fix:",acc,"m"); return; }
     lastPos={ lat:+pos.coords.latitude.toFixed(6), lng:+pos.coords.longitude.toFixed(6) };
-    try{ localStorage.setItem("hub_lastpos", JSON.stringify(lastPos)); }catch(e){}
-    writePresence();
+    try{ localStorage.setItem(lastPosKey(), JSON.stringify(lastPos)); }catch(e){}
+    writePresence();               // ← only writes once we have a REAL fix
     setLocBtn(true);
     if(map && !startPresence._centered){ startPresence._centered=true; map.setView([lastPos.lat,lastPos.lng], Math.max(map.getZoom(),11)); }
   }, err=>{
-    // Geolocation denied/unavailable — keep the seeded sprite visible, just note it.
+    /* Denied or unavailable — do NOT broadcast a guessed position. */
     console.warn("geolocation:",err);
-    if($("locBtn")) $("locBtn").textContent = err.code===1 ? "📍 Shown (location blocked)" : "📍 Shown (GPS unavailable)";
-  }, { enableHighAccuracy:true, maximumAge:15000, timeout:20000 });
+    presenceOn=false; setLocBtn(false);
+    if(db){ try{ remove(ref(db,"presence/"+me.uid)).catch(()=>{}); }catch(e){} }
+    if($("locBtn")) $("locBtn").textContent = err.code===1 ? "📍 Location blocked — tap to retry" : "📍 GPS unavailable — tap to retry";
+  }, { enableHighAccuracy:true, maximumAge:0, timeout:30000 });
 }
 function stopPresence(){
   presenceOn=false; setLocBtn(false);
+  startPresence._centered=false;     // re-center on the next real fix
   if(geoWatchId!=null && navigator.geolocation){ navigator.geolocation.clearWatch(geoWatchId); geoWatchId=null; }
   if(db){ try{ remove(ref(db,"presence/"+me.uid)).catch(()=>{}); }catch(e){} }
 }
@@ -3912,11 +4590,29 @@ function sproutSystemPrompt(){
   const role=(me.role||"user").toUpperCase();
   const scope=myScopeDistricts();
   const scopeTxt = scope===null ? "all districts" : (scope.length? ("districts "+scope.join(", ")) : "no districts");
+
+  /* Live context so Sprout can answer "what's left here?", "who's nearest?", etc. */
+  const ctx=[];
+  ctx.push("Current view: "+(curView||"map")+".");
+  if(selected && stores[selected]){
+    const s=stores[selected];
+    ctx.push("Selected store: #"+s.id+" "+s.name+", "+Math.round(completion(s)*100)+"% complete, territory "+(s.territory||"?")+".");
+    if(typeof storeHasIssues==="function" && storeHasIssues(s.id)) ctx.push("This store has open issues.");
+  }
+  const mine=myAssignedStoreIds();
+  if(mine.length){
+    const done=mine.filter(id=>completion(stores[id])>=1).length;
+    ctx.push("The user has "+mine.length+" assigned stores, "+done+" complete, "+(mine.length-done)+" remaining.");
+  }
+  const totalStores=Object.keys(stores).length;
+  if(totalStores) ctx.push("There are "+totalStores+" stores total on the map.");
+
   return [
 "You are Sprout Bot, a friendly assistant inside the HF-HPA Merchandising Hub — an internal tool for Home Depot houseplant-area field merchandising teams.",
 "Help with plant care, pest ID, merchandising, store visits, damage claims, and general questions. Keep answers concise and practical.",
 "",
 "The current user is "+(me.name||"a user")+", role "+role+", with edit scope over "+scopeTxt+".",
+"Live app context (use it to answer specific questions): "+ctx.join(" "),
 "",
 "You may PROPOSE one change when the user clearly asks you to change something in the app. You never apply changes yourself — the user must confirm, and the app enforces permissions. Only propose a change if the user is a manager-type role (VP, Director, RMM1, RMM2, HPA, HF, DM).",
 "To propose a change, end your reply with a single line starting with @@ACTION@@ followed by compact JSON. Supported actions:",
@@ -4137,39 +4833,6 @@ async function identifyPlant(dataUrl){
   return text || "I couldn't tell from this photo. Try a clearer, closer shot of the leaves.";
 }
 
-/* ----- Push notifications (item 4, in-page registration) ----- */
-async function enablePush(){
-  if(!("serviceWorker" in navigator)){ alert("This browser doesn't support push notifications."); return; }
-  if(!VAPID_KEY){ alert("Push isn't set up yet. An admin needs to add the Web Push (VAPID) key and deploy the messaging service worker — see PUSH_SETUP.md."); return; }
-  try{
-    const perm=await Notification.requestPermission();
-    if(perm!=="granted"){ alert("Notifications were not allowed. You can enable them later in your browser settings."); return; }
-    const reg=await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    if(!fbMessaging) fbMessaging=getMessaging(fbApp);
-    const token=await getToken(fbMessaging, { vapidKey:VAPID_KEY, serviceWorkerRegistration:reg });
-    if(token && db){
-      /* Save this device's token so the Cloud Function can target the user. */
-      await set(ref(db,"pushTokens/"+me.uid+"/"+token.replace(/[.#$\[\]\/]/g,"_")), {
-        token, name:me.name, role:me.role||"", district:(findTeamUser(me.username)||{}).district||"",
-        region:(findTeamUser(me.username)||{}).region||"", ts:Date.now()
-      });
-      showToast("Phone alerts enabled for this device ✅","🔔");
-    }
-    /* Foreground messages → show an in-app toast too. */
-    onMessage(fbMessaging, (payload)=>{
-      const n=(payload && payload.notification)||{};
-      showToast("<b>"+esc(n.title||"Update")+"</b> "+esc(n.body||""), "🔔");
-    });
-  }catch(e){
-    console.error("push enable failed:",e);
-    alert("Couldn't enable push on this device. "+(e&&e.message||""));
-  }
-}
-function initPush(){
-  const b=$("btnEnablePush"); if(!b) return;
-  b.addEventListener("click", enablePush);
-}
-
 /* ============================================================
    SOCIAL HUB — Feed, Team Chat, DMs, Ask (Sprout), Status
    ============================================================ */
@@ -4200,9 +4863,47 @@ function renderMessages(logEl, messages){
 }
 
 /* ----- FEED ----- */
+function highlightMentions(text){
+  /* esc() first elsewhere; here we wrap @name tokens. Operates on already-escaped text. */
+  return text.replace(/@([A-Za-z][\w.\-]*)/g, '<span class="mention">@$1</span>');
+}
+const REACTION_EMOJIS=["👍","❤️","✅","🔥","👏","😂"];
+let feedCache={};
+function toggleReaction(postId, emoji){
+  if(!db || !postId) return;
+  const path=`feed/${postId}/reactions/${me.uid}`;
+  const cur=(feedCache[postId]&&feedCache[postId].reactions&&feedCache[postId].reactions[me.uid])||"";
+  if(cur===emoji) remove(ref(db,path)).catch(console.error);
+  else set(ref(db,path), emoji).catch(console.error);
+}
+function reactionBar(postId, reactions){
+  const counts={};
+  Object.values(reactions||{}).forEach(e=>{ counts[e]=(counts[e]||0)+1; });
+  const mine=(reactions||{})[me.uid]||"";
+  const chips=Object.keys(counts).map(e=>`<button class="rx-chip${mine===e?' mine':''}" data-rx="${esc(e)}" data-post="${esc(postId)}" type="button">${esc(e)} ${counts[e]}</button>`).join("");
+  return `<div class="rx-row">${chips}<button class="rx-add" data-rxadd="${esc(postId)}" type="button">＋</button></div>`;
+}
+let _mentionPrimed=false, _mentionSeen=0;
+function detectMentions(val){
+  const myFirst=(me.name||"").split(" ")[0].toLowerCase();
+  const myUser=(me.username||"").toLowerCase();
+  const arr=Object.values(val||{}).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(!_mentionPrimed){ _mentionPrimed=true; _mentionSeen=arr.length?arr[arr.length-1].ts:Date.now(); return; }
+  arr.forEach(p=>{
+    if(p.ts>_mentionSeen && p.uid!==me.uid && p.text){
+      const tokens=(p.text.match(/@([A-Za-z][\w.\-]*)/g)||[]).map(t=>t.slice(1).toLowerCase());
+      if(tokens.some(t=> t===myFirst || t===myUser)){
+        showToast(`<b>${esc(p.name||"Someone")}</b> mentioned you in the feed`, "💬");
+      }
+    }
+  });
+  if(arr.length) _mentionSeen=Math.max(_mentionSeen, arr[arr.length-1].ts);
+}
+
 function renderFeed(val){
+  feedCache=val||{};
   const log=$("feedLog"); if(!log) return;
-  const arr=Object.keys(val||{}).map(k=>val[k]).filter(Boolean).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const arr=Object.keys(val||{}).map(k=>({ id:k, ...val[k] })).filter(Boolean).sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!arr.length){ log.innerHTML='<div class="hub-empty">No updates yet. Post the first one below. 📣</div>'; return; }
   log.innerHTML="";
   arr.forEach(p=>{
@@ -4213,19 +4914,19 @@ function renderFeed(val){
 
     let bodyInner;
     if(isFeeling){
-      /* Item 11 format: "<name> is feeling <emoji> <word>, because <why>." */
       const because = p.feelWhy ? `, because ${esc(p.feelWhy)}` : "";
       bodyInner = `<div class="top">${esc(p.name||'User')}</div>
         <div class="txt"><b>${esc(p.name||'User')}</b> is feeling ${esc(p.feelEmoji||'🙂')} <b>${esc(p.feelWord||'')}</b>${because}.</div>
         <div class="when">${esc(fmtTime(p.ts))}</div>`;
     } else {
-      const txt = p.text ? `<div class="txt">${esc(p.text)}</div>` : "";
+      const txt = p.text ? `<div class="txt">${highlightMentions(esc(p.text))}</div>` : "";
       const photo = p.photo ? `<img class="photo" src="${esc(p.photo)}" alt="photo" loading="lazy">` : "";
       const top = isShout && p.toName
         ? `${esc(p.name||'User')} → <b>${esc(p.toName)}</b>`
         : `${esc(p.name||'User')}`;
       bodyInner = `<div class="top">${top}</div>${txt}${photo}<div class="when">${esc(fmtTime(p.ts))}</div>`;
     }
+    bodyInner += reactionBar(p.id, p.reactions);
 
     el.innerHTML=`<div class="dot" style="background:${esc(p.color||'#3da9fc')}">${esc(p.emoji||'🙂')}</div>
       <div class="body">${bodyInner}</div>`;
@@ -4233,8 +4934,14 @@ function renderFeed(val){
       const img=el.querySelector(".photo");
       if(img) img.addEventListener("click",()=>openLightbox(p.photo));
     }
+    el.querySelectorAll("[data-rx]").forEach(b=> b.addEventListener("click",()=>toggleReaction(b.dataset.post, b.dataset.rx)));
+    el.querySelectorAll("[data-rxadd]").forEach(b=> b.addEventListener("click",()=>openReactionPicker(b.dataset.rxadd)));
     log.appendChild(el);
   });
+}
+function openReactionPicker(postId){
+  const pick=window.prompt("React with: "+REACTION_EMOJIS.join("  ")+"\n\nType one (or paste any emoji):", "👍");
+  if(pick && pick.trim()) toggleReaction(postId, pick.trim().slice(0,4));
 }
 function postFeed(text, kind, photo){
   if(!db) return;
@@ -4520,6 +5227,7 @@ function initHub(){
       const val=snap.val()||{};
       renderFeed(val);
       flagActivity(Math.max(0,...Object.values(val).map(p=>p&&p.ts||0)));
+      detectMentions(val);
     }, err=>console.error("feed read:",err));
     /* Team chat is district-scoped: the active room is subscribed in openChatRoom(). */
     // DM peers come from presence (people who've appeared on the map)
@@ -5020,6 +5728,48 @@ function initStoreIssues(){
   }
 }
 
+/* ----- Damage claims ----- */
+let _damagePhoto="";
+function openDamageEditor(){
+  if(!selected) return;
+  $("damageStoreLabel").textContent="Store #"+selected+" — "+(stores[selected]?stores[selected].name:"");
+  _damagePhoto="";
+  $("damagePhotoPreview").style.display="none";
+  $("damageSku").value=""; $("damageQty").value="1";
+  $("damageReason").value="Cold damage"; $("damageNotes").value="";
+  openModal("damageEditor");
+}
+function saveDamage(){
+  if(!selected || !db){ closeModal("damageEditor"); return; }
+  const sku=($("damageSku").value||"").trim();
+  const qty=parseInt($("damageQty").value,10)||1;
+  const reason=$("damageReason").value||"Other";
+  const notes=($("damageNotes").value||"").trim();
+  if(!sku && !notes){ $("damageSku").focus(); return; }
+  const rec={ sku, qty, reason, notes, uid:me.uid, name:me.name, date:todayKey(), ts:Date.now() };
+  if(_damagePhoto) rec.photo=_damagePhoto;
+  const node=push(ref(db,"damageClaims/"+selected));
+  set(node, rec).catch(err=>{ console.error(err); alert("Couldn't submit the claim"+(_damagePhoto?" — the photo may be too large.":".")); });
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`logged a damage claim at store #${selected} (${reason}${qty>1?" ×"+qty:""})`);
+  closeModal("damageEditor");
+  showToast("Damage claim submitted","📋");
+}
+function initDamage(){
+  $("btnAddDamage").addEventListener("click", openDamageEditor);
+  $("damageSave").addEventListener("click", saveDamage);
+  $("damagePhotoBtn").addEventListener("click",()=>$("damagePhotoFile").click());
+  $("damagePhotoFile").addEventListener("change", async (e)=>{
+    const f=e.target.files && e.target.files[0]; e.target.value="";
+    if(!f) return;
+    try{ _damagePhoto=await compressImage(f, 1000, 0.7); $("damagePhotoPreview").src=_damagePhoto; $("damagePhotoPreview").style.display=""; }
+    catch(err){ console.error(err); alert("Couldn't read that photo."); }
+  });
+  if(db){
+    onValue(ref(db,"damageClaims"), snap=>{ damageClaims=snap.val()||{}; }, err=>console.error("damageClaims read:",err));
+  }
+}
+let damageClaims={};
+
 /* ----- Editable Care & ID (item 13-care) ----- */
 /* Overrides + new entries live under careData/{house|perennial|pest}. The built-in
    arrays are the defaults; overrides merge on top so managers can edit any field,
@@ -5172,6 +5922,11 @@ function init(){
   wireTabs("products",{skus:"products-skus",orders:"products-orders"},"#view-products");
   wireTabs("careid",{house:"careid-house",perennial:"careid-perennial",pest:"careid-pest"},"#view-careid");
   wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district",safety:"ops-safety"},"#view-ops",(key)=>{ if(key==="district") renderDistrictTab(); if(key==="safety") renderSafety(); });
+  wireBottomNav();   // redesign: one-tap bottom navigation
+  initDisplaySettings();   // theme + text size
+  initGlobalSearch();      // search stores/SKUs/plants/pests
+  initTodayTools();        // route optimize + day summary
+  initTrend();             // completion trend sparkline
 
   initGuidelines();
 
@@ -5187,16 +5942,227 @@ function init(){
   watchTeamAlerts();       // item 12
   initSafety();            // item 18
   initStoreIssues();       // item 10
+  initDamage();            // damage claims
+  initWeeklyDigest();      // weekly digest
+  initTour();              // onboarding tour
   initCareEditing();       // item 13-care
   initSproutVoice();       // item 20 voice-to-text
   initIdentify();          // item 21 plant identifier
-  initPush();              // item 4 push registration
+  initPullToRefresh();     // pull down to refresh
 
   /* Load the live roster from users.csv first so roles, regions and districts
      are known before we restore a session or validate a login. If the fetch
      fails, the built-in fallback roster is used. */
   showSplash();
   loadUsersCsv().then(()=>{ initAuth(); }).catch(()=>{ initAuth(); });
+}
+
+/* ---------- Global search (stores, SKUs, plants, pests) ---------- */
+function openGlobalSearch(){
+  $("globalSearch").classList.remove("hidden");
+  $("gsInput").value="";
+  $("gsResults").innerHTML='<div class="gs-hint">Type to search across the whole hub.</div>';
+  setTimeout(()=>$("gsInput").focus(),50);
+}
+function closeGlobalSearch(){ $("globalSearch").classList.add("hidden"); }
+function runGlobalSearch(q){
+  q=(q||"").toLowerCase().trim();
+  const box=$("gsResults");
+  if(!q){ box.innerHTML='<div class="gs-hint">Type to search across the whole hub.</div>'; return; }
+  const out=[];
+
+  // Stores
+  const storeHits=Object.values(stores).filter(s=>
+    String(s.id).includes(q) || (s.name||"").toLowerCase().includes(q) || (s.address||"").toLowerCase().includes(q)
+  ).slice(0,8);
+  if(storeHits.length){
+    out.push('<div class="gs-group-label">Stores</div>');
+    storeHits.forEach(s=>{
+      out.push(`<button class="gs-item" data-go="store" data-id="${esc(s.id)}">
+        <span class="gs-emoji">📍</span><span class="gs-main">
+        <span class="gs-title">#${esc(s.id)} — ${esc(s.name||"")}</span>
+        <span class="gs-sub">${esc(s.address||("Territory "+(s.territory||"?")))}</span></span></button>`);
+    });
+  }
+  // SKUs
+  if(typeof skuData!=="undefined" && Array.isArray(skuData) && skuData.length){
+    const skuHits=skuData.filter(it=>
+      (it.name||"").toLowerCase().includes(q) || normSku(it.sku).includes(normSku(q)) || (it.sentIn||"").toLowerCase().includes(q)
+    ).slice(0,8);
+    if(skuHits.length){
+      out.push('<div class="gs-group-label">Products / SKUs</div>');
+      skuHits.forEach(it=>{
+        out.push(`<button class="gs-item" data-go="sku" data-sku="${esc(it.sku)}">
+          <span class="gs-emoji">📦</span><span class="gs-main">
+          <span class="gs-title">${esc(it.name||"")}</span>
+          <span class="gs-sub">SKU ${esc(it.sku||"")} · ${esc(it.sentIn||"")}</span></span></button>`);
+      });
+    }
+  }
+  // Plants + pests (merged lists include manager edits/additions)
+  const plantHits=[];
+  ["house","perennial"].forEach(kind=>{
+    mergedCareList(kind).forEach(p=>{
+      if((p.commonName||"").toLowerCase().includes(q) || (p.scientificName||"").toLowerCase().includes(q))
+        plantHits.push({ kind, p });
+    });
+  });
+  if(plantHits.length){
+    out.push('<div class="gs-group-label">Plants</div>');
+    plantHits.slice(0,8).forEach(({kind,p})=>{
+      out.push(`<button class="gs-item" data-go="plant" data-kind="${esc(kind)}" data-key="${esc(p._key||p.commonName||"")}">
+        <span class="gs-emoji">🌿</span><span class="gs-main">
+        <span class="gs-title">${esc(p.commonName||"")}</span>
+        <span class="gs-sub">${esc(p.scientificName||"")}</span></span></button>`);
+    });
+  }
+  const pestHits=mergedCareList("pest").filter(p=>
+    (p.commonName||"").toLowerCase().includes(q) || (p.scientificName||"").toLowerCase().includes(q)
+  ).slice(0,8);
+  if(pestHits.length){
+    out.push('<div class="gs-group-label">Pests</div>');
+    pestHits.forEach(p=>{
+      out.push(`<button class="gs-item" data-go="pest" data-key="${esc(p._key||p.commonName||"")}">
+        <span class="gs-emoji">🐛</span><span class="gs-main">
+        <span class="gs-title">${esc(p.commonName||"")}</span>
+        <span class="gs-sub">${esc(p.scientificName||"")}</span></span></button>`);
+    });
+  }
+
+  box.innerHTML = out.length ? out.join("") : '<div class="gs-hint">No matches.</div>';
+  $$('.gs-item', box).forEach(b=> b.addEventListener("click",()=>gsNavigate(b)));
+}
+function gsNavigate(b){
+  const go=b.dataset.go;
+  closeGlobalSearch();
+  if(go==="store"){
+    showOnlyView("map");
+    const id=b.dataset.id;
+    setTimeout(()=>{ if(stores[id]){ selectStore(id); if(map&&stores[id].lat!=null) map.setView([stores[id].lat,stores[id].lng], Math.max(map.getZoom(),13)); } }, 200);
+  } else if(go==="sku"){
+    showOnlyView("products");
+    setTimeout(()=>{ const f=$("skuFilter"); if(f){ f.value=b.dataset.sku||""; f.dispatchEvent(new Event("input")); } }, 150);
+  } else if(go==="plant"){
+    showOnlyView("careid");
+    const kind=b.dataset.kind;
+    setTimeout(()=>{ const tab=document.querySelector(`[data-careid="${kind==="perennial"?"perennial":"house"}"]`); if(tab) tab.click(); const inp=$(kind==="perennial"?"perennialSearch":"houseSearch"); if(inp){ inp.value=b.dataset.key.split("|")[0]||""; inp.dispatchEvent(new Event("input")); } }, 150);
+  } else if(go==="pest"){
+    showOnlyView("careid");
+    setTimeout(()=>{ const tab=document.querySelector('[data-careid="pest"]'); if(tab) tab.click(); const inp=$("pestSearch"); if(inp){ inp.value=b.dataset.key.split("|")[0]||""; inp.dispatchEvent(new Event("input")); } }, 150);
+  }
+}
+function initGlobalSearch(){
+  const btn=$("btnGlobalSearch"); if(btn) btn.addEventListener("click", openGlobalSearch);
+  const close=$("gsClose"); if(close) close.addEventListener("click", closeGlobalSearch);
+  const back=$("globalSearch"); if(back) back.addEventListener("click",(e)=>{ if(e.target===back) closeGlobalSearch(); });
+  const inp=$("gsInput"); if(inp){
+    let t=null;
+    inp.addEventListener("input",()=>{ if(t) clearTimeout(t); t=setTimeout(()=>runGlobalSearch(inp.value), 120); });
+    inp.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeGlobalSearch(); });
+  }
+}
+
+/* ---------- Onboarding tour (first run) ---------- */
+const TOUR_STEPS=[
+  { icon:"👋", title:"Welcome to the Hub", body:"This is your field merchandising home base. Here's a quick 20-second tour." },
+  { icon:"🧭", title:"Get around fast", body:"Use the bar at the bottom to jump between the Map, your day, Products, Care & ID, and Store Ops — one tap, always there." },
+  { icon:"🗺", title:"Work the map", body:"Tap a store to see its checklist, attach proof photos, log issues or damage, and see who worked it last." },
+  { icon:"📋", title:"My Day", body:"See your assigned stores nearest-first, optimize your driving route, and check the team leaderboard." },
+  { icon:"💬", title:"The hub & Sprout", body:"Tap the chat bubble for team chat, the feed, and Sprout Bot — ask it anything or snap a photo to identify a plant." },
+  { icon:"⚙️", title:"Make it yours", body:"Use the gear icon for light/dark mode and bigger text. That's it — you're ready!" }
+];
+let _tourStep=0;
+function startTour(){
+  _tourStep=0; renderTourStep(); $("tourOverlay").classList.remove("hidden");
+}
+function renderTourStep(){
+  const s=TOUR_STEPS[_tourStep];
+  $("tourIcon").textContent=s.icon; $("tourTitle").textContent=s.title; $("tourBody").textContent=s.body;
+  $("tourNext").textContent = _tourStep===TOUR_STEPS.length-1 ? "Done" : "Next";
+  $("tourDots").innerHTML=TOUR_STEPS.map((_,i)=>`<span class="${i===_tourStep?'on':''}"></span>`).join("");
+}
+function endTour(){
+  $("tourOverlay").classList.add("hidden");
+  try{ localStorage.setItem("hub_tour_done","1"); }catch(e){}
+}
+function initTour(){
+  const next=$("tourNext"), skip=$("tourSkip");
+  if(next) next.addEventListener("click",()=>{ if(_tourStep>=TOUR_STEPS.length-1) endTour(); else { _tourStep++; renderTourStep(); } });
+  if(skip) skip.addEventListener("click", endTour);
+}
+function maybeStartTour(){
+  let done=false;
+  try{ done=localStorage.getItem("hub_tour_done")==="1"; }catch(e){}
+  if(!done) setTimeout(startTour, 600);
+}
+
+/* ---------- Display settings: theme + text size ---------- */
+function applyTheme(t){
+  const html=document.documentElement;
+  if(t==="light") html.setAttribute("data-theme","light"); else html.removeAttribute("data-theme");
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute("content", t==="light" ? "#eef2f8" : "#0a1020");
+  try{ localStorage.setItem("hub_theme", t); }catch(e){}
+  $$('[data-theme-set]').forEach(b=> b.classList.toggle("btn-primary", b.dataset.themeSet===t));
+}
+function applyTextSize(sz){
+  const html=document.documentElement;
+  if(sz==="large") html.setAttribute("data-text","large");
+  else if(sz==="xlarge") html.setAttribute("data-text","xlarge");
+  else html.removeAttribute("data-text");
+  try{ localStorage.setItem("hub_textsize", sz); }catch(e){}
+  $$('[data-text-set]').forEach(b=> b.classList.toggle("btn-primary", b.dataset.textSet===sz));
+}
+function initDisplaySettings(){
+  let theme="dark", size="normal";
+  try{ theme=localStorage.getItem("hub_theme")||"dark"; size=localStorage.getItem("hub_textsize")||"normal"; }catch(e){}
+  applyTheme(theme); applyTextSize(size);
+  const btn=$("btnSettings"); if(btn) btn.addEventListener("click",()=>{ applyTheme(theme==="light"?"light":"dark"); openModal("settingsModal"); });
+  $$('[data-theme-set]').forEach(b=> b.addEventListener("click",()=>{ theme=b.dataset.themeSet; applyTheme(theme); }));
+  $$('[data-text-set]').forEach(b=> b.addEventListener("click",()=>{ size=b.dataset.textSet; applyTextSize(size); }));
+}
+
+/* ---------- Pull-to-refresh ---------- */
+function initPullToRefresh(){
+  let startY=0, pulling=false, ind=null;
+  const THRESHOLD=70;
+  function makeInd(){
+    if(ind) return ind;
+    ind=document.createElement("div");
+    ind.style.cssText="position:fixed;top:0;left:50%;transform:translate(-50%,-46px);z-index:9000;"+
+      "width:36px;height:36px;border-radius:50%;background:var(--panel-raised);border:1px solid var(--accent-line);"+
+      "display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:var(--shadow);"+
+      "transition:transform .15s;pointer-events:none;";
+    ind.textContent="↓";
+    document.body.appendChild(ind);
+    return ind;
+  }
+  window.addEventListener("touchstart",(e)=>{
+    /* only when scrolled to the very top and inside the app */
+    if(window.scrollY>0 || !document.body.classList.contains("has-bottomnav")) { pulling=false; return; }
+    if(e.touches.length!==1) return;
+    startY=e.touches[0].clientY; pulling=true;
+  }, { passive:true });
+  window.addEventListener("touchmove",(e)=>{
+    if(!pulling) return;
+    const dy=e.touches[0].clientY-startY;
+    if(dy<=0){ if(ind) ind.style.transform="translate(-50%,-46px)"; return; }
+    const pull=Math.min(dy, THRESHOLD+40);
+    const i=makeInd();
+    i.style.transform="translate(-50%,"+(Math.min(pull,THRESHOLD+10)-46)+"px)";
+    if(pull>=THRESHOLD){ i.textContent="↻"; i.style.color="var(--accent)"; }
+    else { i.textContent="↓"; i.style.color="var(--muted)"; }
+  }, { passive:true });
+  window.addEventListener("touchend",(e)=>{
+    if(!pulling){ return; }
+    pulling=false;
+    const dy=(e.changedTouches[0]?e.changedTouches[0].clientY:0)-startY;
+    if(ind) ind.style.transform="translate(-50%,-46px)";
+    if(dy>=THRESHOLD){
+      if(ind){ ind.textContent="↻"; ind.style.transform="translate(-50%,10px)"; }
+      setTimeout(()=>location.reload(), 150);
+    }
+  }, { passive:true });
 }
 
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
