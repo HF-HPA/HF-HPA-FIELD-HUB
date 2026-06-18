@@ -334,11 +334,11 @@
     .splash-btn:hover{ transform:translateY(-3px); }
     .splash-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:6px; border-radius:24px; }
     .splash-btn img{ width:140px; height:140px; border-radius:24px; object-fit:contain; }
-    .splash-fallback{ display:none; flex-direction:column; align-items:center; gap:6px;
+    .splash-fallback{ display:flex; flex-direction:column; align-items:center; gap:6px;
       font-size:1.5rem; font-weight:800; color:var(--heading); letter-spacing:.02em;
       padding:40px 48px; border-radius:24px; background:var(--accent-soft); border:1px solid var(--accent-line); }
     .splash-fallback small{ font-size:.8rem; font-weight:600; color:var(--accent); letter-spacing:.04em; text-transform:uppercase; }
-    .splash-btn.noimg .splash-fallback{ display:flex; }
+    .splash-btn.imgok .splash-fallback{ display:none; }
     .login{ width:100%; max-width:360px; }
     .login .logo-wrap{ text-align:center; margin-bottom:6px; }
     .login .logo-wrap img{ width:64px; height:64px; border-radius:16px; background:var(--accent-soft); border:1px solid var(--line); }
@@ -887,13 +887,33 @@
     }
 </head>
 <body>
+  <!-- Guaranteed-visible error trap: if the main module fails to run on this
+       host (e.g. GitHub Pages quirks), show the reason instead of a blank page. -->
+  <div id="bootError" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a1020;color:#cfe0ff;
+       font:14px/1.5 system-ui,sans-serif;padding:24px;overflow:auto;">
+    <h2 style="color:#7fb4ff;margin:0 0 8px;">Hub failed to start</h2>
+    <p style="margin:0 0 10px;">A script error stopped the app from loading. Details:</p>
+    <pre id="bootErrorMsg" style="white-space:pre-wrap;color:#ff9a9a;background:#11203a;padding:12px;border-radius:8px;"></pre>
+    <button onclick="location.reload()" style="margin-top:12px;padding:10px 16px;border-radius:8px;border:none;background:#3da9fc;color:#022;font-weight:700;cursor:pointer;">Reload</button>
+  </div>
+  <script>
+    window.addEventListener("error", function(e){
+      var box=document.getElementById("bootError"), msg=document.getElementById("bootErrorMsg");
+      if(box && msg){ box.style.display="block"; msg.textContent=(e.message||"")+"\n"+(e.filename||"")+":"+(e.lineno||""); }
+    });
+    window.addEventListener("unhandledrejection", function(e){
+      var box=document.getElementById("bootError"), msg=document.getElementById("bootErrorMsg");
+      if(box && msg){ box.style.display="block"; msg.textContent="Promise: "+((e.reason&&e.reason.message)||e.reason||"unknown"); }
+    });
+  </script>
+
   <div class="wrap">
 
     <!-- ===== SPLASH ===== -->
     <section id="view-splash">
       <div class="center-stage">
         <button id="splashEnter" class="splash-btn" aria-label="Enter the hub">
-          <img src="hf_logo.png" alt="HF-HPA Hub" onerror="this.style.display='none';this.parentNode.classList.add('noimg');" />
+          <img src="hf_logo.png" alt="HF-HPA Hub" onload="this.parentNode.classList.add('imgok')" onerror="this.style.display='none'" />
           <span class="splash-fallback">HF-HPA&nbsp;Hub<small>Tap to enter</small></span>
         </button>
       </div>
