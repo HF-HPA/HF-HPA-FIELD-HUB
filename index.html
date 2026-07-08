@@ -882,6 +882,14 @@
     #tqResult{ padding:12px; border-radius:var(--radius-sm); text-align:center; font-weight:700; }
     #tqResult.pass{ background:rgba(61,220,151,.14); color:var(--good); }
     #tqResult.fail{ background:rgba(240,106,106,.14); color:var(--bad); }
+    .train-day-label{
+      font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--accent);
+      margin:18px 0 10px 0; padding-left:2px;
+    }
+    .train-day-label:first-child{ margin-top:0; }
+    .train-node.locked-day .tn-dot{ opacity:.55; }
+    .train-node.locked-day .tn-card{ opacity:.7; }
+    .train-node .tn-unlock{ font-size:.72rem; color:var(--warn); font-weight:700; margin-top:6px; }
 
     /* Reactions + mentions */
     .rx-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
@@ -1393,7 +1401,7 @@
       <section id="view-training">
         <div class="head">
           <h2>🎓 Merchandiser Training</h2>
-          <p>Level up from New Hire to Certified Merchandiser — real tasks, quick quizzes, real XP.</p>
+          <p>A ~2-week path from New Hire to Certified Merchandiser. One day's lessons unlock at a time — no cramming.</p>
         </div>
         <div class="panel panel-pad" style="margin-bottom:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -1407,6 +1415,7 @@
             </div>
           </div>
           <div class="progress-track" style="margin-top:10px;"><div id="trainProgressBar" class="progress-fill" style="width:0%;"></div></div>
+          <div id="trainDayNote" style="margin-top:8px;font-size:.76rem;color:var(--muted);"></div>
         </div>
         <div id="trainPath" class="train-path"></div>
       </section>
@@ -1864,7 +1873,10 @@
         <img id="feedPreviewImg" alt="" />
         <button id="feedPreviewClear" type="button" aria-label="Remove photo">×</button>
       </div>
-      <div class="hub-input">
+      <div id="feedReadOnlyNote" class="hidden" style="padding:10px 14px;font-size:.78rem;color:var(--muted);text-align:center;border-top:1px solid var(--line-soft);">
+        📣 This feed is for important updates from management.
+      </div>
+      <div id="feedComposer" class="hub-input">
         <input id="feedPhoto" type="file" accept="image/*" capture="environment" class="hidden" />
         <button id="feedShoutBtn" class="btn btn-ghost" type="button" title="Give a shout-out" style="flex:0 0 auto;padding:10px 12px;">🎉</button>
         <button id="feedFeelingBtn" class="btn btn-ghost" type="button" title="Post a feeling" style="flex:0 0 auto;padding:10px 12px;">😊</button>
@@ -5345,9 +5357,9 @@ function openReactionPicker(postId){
 }
 function postFeed(text, kind, photo){
   if(!db) return;
-  /* FSS/DM may only post feelings. */
-  if(feedFeelingOnly() && kind!=="feeling"){
-    alert("Your role can post a feeling to the feed, but not other updates.");
+  /* Feed is management-announcements only now. */
+  if(!me.isManager){
+    alert("The feed is reserved for management updates now — ask a manager to post this.");
     return;
   }
   const t=(text||"").trim();
@@ -5369,7 +5381,7 @@ function postFeed(text, kind, photo){
 }
 let shoutWhoPicker=null;
 function openShoutEditor(){
-  if(feedFeelingOnly()){ alert("Your role can post a feeling to the feed, but not shout-outs."); return; }
+  if(!me.isManager){ alert("Shout-outs post to the feed, which is management-only now."); return; }
   const sel=$("shoutWho"); sel.innerHTML="";
   const peers=rosterPeople().filter(p=>p.uid!==me.uid);
   if(!peers.length){
@@ -5892,6 +5904,7 @@ function paintFeelingPreview(){
   $("feelingPreviewWord").textContent = ($("feelingWord").value||"").trim() || "…";
 }
 function openFeelingEditor(){
+  if(!me.isManager){ alert("Feelings post to the feed, which is management-only now."); return; }
   feelingDraftEmoji="😊";
   $("feelingWord").value=""; $("feelingWhy").value="";
   buildFeelingGrid(); paintFeelingPreview();
@@ -6764,14 +6777,12 @@ function applyNextLevelAdminUI(){
   const sc=$("btnStartCampaign"); if(sc) sc.classList.toggle("hidden", !me.isManager);
   applyFeedRestrictions();
 }
-/* FSS / DM may only post "feelings" — hide every other feed-composer control. */
+/* Feed is management-announcements only now — everyone can read it, only
+   managers get the composer (post/photo/shout/feeling). */
 function applyFeedRestrictions(){
-  const only=feedFeelingOnly();
-  ["feedShoutBtn","feedPhotoBtn","feedInput","feedSend"].forEach(id=>{ const el=$(id); if(el) setVis(el, !only); });
-  const feel=$("feedFeelingBtn"); if(feel) setVis(feel, true);
-  /* Make the feeling button obvious as the only option for these roles. */
-  if(only && feel){ feel.style.flex="1"; feel.title="Post how you're feeling"; }
-  else if(feel){ feel.style.flex="0 0 auto"; }
+  const canPost=!!me.isManager;
+  setVis($("feedComposer"), canPost);
+  setVis($("feedReadOnlyNote"), !canPost);
 }
 
 /* ============================================================
@@ -7035,8 +7046,12 @@ function runSproutOnboarding(){
    trainee confirms with their supervisor, and a short quiz.
    Progress is stored per-user in Firebase under training/{uid}.
    ============================================================ */
+/* Hours between "days" of the program unlocking. 20h (not 24) so finishing a
+   day's lessons a little early doesn't push the next day later and later. */
+const TRAINING_DAY_HOURS=20;
 const TRAINING_LEVELS=[
-  { id:"welcome", icon:"👋", title:"Welcome Aboard", xp:50,
+  // ---------------- Day 1 — Getting Started ----------------
+  { id:"welcome", day:1, icon:"👋", title:"Welcome Aboard", xp:50,
     blurb:"UKG basics — clocking in, breaks, and your schedule.",
     summary:[
       "You're part of the Hampshire Farms family — merchandisers keep our plants shelf-ready and our Home Depot partners happy.",
@@ -7052,7 +7067,7 @@ const TRAINING_LEVELS=[
       { q:"True or false: salaried employees must clock out for lunch.", options:["True","False"], correct:1 }
     ]
   },
-  { id:"picas", icon:"📱", title:"Picas & Inventory", xp:60,
+  { id:"picas", day:1, icon:"📱", title:"Picas & Markdowns", xp:60,
     blurb:"Store visits, markdowns, and keeping inventory honest.",
     summary:[
       "<b>Picas</b> is how we record store visits and markdowns — our digital paper trail.",
@@ -7067,7 +7082,9 @@ const TRAINING_LEVELS=[
       { q:"Which of these is NOT a markdown trigger?", options:["Pests on the plant","A fresh new delivery","A cracked pot","More than 50% dead/yellow leaves"], correct:1 }
     ]
   },
-  { id:"safety", icon:"🦺", title:"Safety First", xp:60,
+
+  // ---------------- Day 2 — Working Safely ----------------
+  { id:"safety", day:2, icon:"🦺", title:"Safety First", xp:60,
     blurb:"Lifting, racks, and wet floors — the essentials.",
     summary:[
       "Lift with your legs, not your back — don't bend over from the waist.",
@@ -7082,7 +7099,7 @@ const TRAINING_LEVELS=[
       { q:"When lifting something heavy:", options:["Bend at the waist","Lift with your legs","Hold your breath","Ask a customer to help"], correct:1 }
     ]
   },
-  { id:"racks", icon:"🛒", title:"CC Racks & Rentals", xp:40,
+  { id:"racks", day:2, icon:"🛒", title:"CC Racks & Rentals", xp:40,
     blurb:"Why empty racks can't just sit around.",
     summary:[
       "CC racks aren't ours — Hampshire Farms pays a <b>daily rental fee</b>, so empty racks need to go back to the farm ASAP.",
@@ -7095,45 +7112,207 @@ const TRAINING_LEVELS=[
       { q:"Before a rack is picked up, you should remove:", options:["Nothing","Debris and third-party banners","The wheels","The shelves"], correct:1 }
     ]
   },
-  { id:"outdoor", icon:"🌸", title:"Outdoor Merchandising", xp:70,
-    blurb:"Apron, IGC, and Corral — brands, tables, and signage.",
+
+  // ---------------- Day 3 — Apron Merchandising I ----------------
+  { id:"apron1", day:3, icon:"🌸", title:"Apron Table 1 — Proven Winner", xp:60,
+    blurb:"The table closest to the Garden Gates.",
     summary:[
-      "Apron Table 1 is Proven Winner, Table 2 is Vigoro, Table 3 is Opening Price Point — all striped short to tall.",
-      "The IGC <b>AD Section</b> is the first 8 feet closest to the registers — no hanging basket fixture there.",
-      "\"Striping\" mirrors product side to side on a table; \"blocking\" splits sun and shade varieties by row.",
-      "Every 8-foot table section and every endcap gets a 5x8 sign in the center."
+      "Apron Table 1 is <b>Proven Winner</b> — always the table closest to the Garden Gates.",
+      "Striped short to tall, year-round. Varieties and the endcap change weekly with the Apron Garden Plans.",
+      "12x24 and 5x8 signage will be BMSM or Proven Winner Perennials.",
+      "One 5x8 Proven Winner sign in the center of each 8-foot section, one BMSM sign on each side of the run, one sign centered on the endcap."
     ],
-    irlTask:"Walk your Apron and IGC with your supervisor and point out Tables 1, 2, 3, and the AD Section.",
     quiz:[
-      { q:"Which brand is on Apron Table 1?", options:["Vigoro","Proven Winner","Local Favorite","Rio"], correct:1 },
-      { q:"What does \"striping\" mean?", options:["Painting stripes on tables","Mirroring product on both sides of a table","Splitting sun/shade by row","Rotating old stock out"], correct:1 },
-      { q:"Where is the AD Section?", options:["Farthest from the registers","First 8 feet closest to the registers","In the parking lot","On pallets only"], correct:1 },
-      { q:"An \"Apron\" is:", options:["The area inside the garden gates","The area in front of the store, outside the garden gates","A type of sign","A rack"], correct:1 }
+      { q:"Which table is closest to the Garden Gates?", options:["Table 3","Table 2","Table 1","None of them"], correct:2 },
+      { q:"Apron Table 1 is branded:", options:["Vigoro","Proven Winner","Local Favorite","Rio"], correct:1 },
+      { q:"How is Table 1 striped?", options:["Tall to short","Short to tall","Randomly","By color only"], correct:1 }
     ]
   },
-  { id:"hpa", icon:"🌿", title:"Houseplant (HPA) Merchandising", xp:70,
-    blurb:"Pods, pricing tiers, and watering indoors.",
+  { id:"apron2", day:3, icon:"🌼", title:"Apron Table 2 — Vigoro", xp:50,
+    blurb:"The second table, one-gallon product year-round.",
     summary:[
-      "The <b>PW Pod</b> sits closest to the Main Entrance — premium varieties, striped short to tall.",
-      "Typical pod order from the entrance: PW → Blooming/Orchid → Vigoro → Home Decor/Breathe Easy, with Hanging Baskets centered in back.",
-      "Tags always face the customer, and the bottom of every pod gets restocked two rows deep.",
-      "Water indoor product in the morning or evening — never 10am–4pm during peak season."
+      "Apron Table 2 is <b>Vigoro</b> — the second table from the gates, one-gallon product all year.",
+      "Also striped short to tall, with weekly variety and endcap changes.",
+      "12x24/5x8 signage is BMSM or Vigoro Perennials, same sign pattern as Table 1."
     ],
-    irlTask:"Restock and straighten one HPA pod top to bottom with your supervisor.",
+    quiz:[
+      { q:"Apron Table 2 is branded:", options:["Proven Winner","Vigoro","Opening Price Point","Rio"], correct:1 },
+      { q:"What size product is on Table 2 all year?", options:["One gallon","Two gallon","Three gallon","10-inch pots"], correct:0 }
+    ]
+  },
+
+  // ---------------- Day 4 — Apron Merchandising II ----------------
+  { id:"apron3", day:4, icon:"🌻", title:"Apron Table 3 — Opening Price Point", xp:50,
+    blurb:"The value table, striped year-round.",
+    summary:[
+      "Apron Table 3 is <b>Opening Price Point</b> — one-gallon product, striped year-round.",
+      "12x24 signage is Local Favorite; 5x8 signage is 1G Perennial.",
+      "One 5x8 sign per 8-foot section and one centered on the endcap."
+    ],
+    quiz:[
+      { q:"Table 3's 12x24 signage reads:", options:["Local Favorite","Proven Winner","Vigoro","BMSM"], correct:0 },
+      { q:"Table 3 is merchandised with:", options:["Three-gallon shrubs","One-gallon perennials","Orchids","Wreaths"], correct:1 }
+    ]
+  },
+  { id:"apron-extras", day:4, icon:"🚜", title:"Pallets, Gates & Staged Racks", xp:60,
+    blurb:"Filling the rest of the Apron.",
+    summary:[
+      "<b>Pallets</b> go in front of endcaps or closed driveways — 2G/3G perennials, 10in pots, combos, and daylilies work best, one sign per two pallets.",
+      "<b>Garden Gates</b> get perennial racks for impulse sales — sale items get extra signage, non-sale items get one 5x8.",
+      "<b>Staged Racks</b> need a designated staging area, grouped by brand, with one 5x8 sign each — PW and Vigoro racks get an extra BMSM sign."
+    ],
+    quiz:[
+      { q:"Where are pallets typically placed?", options:["Behind the store","In front of endcaps or closed driveways","In the HPA","On the roof"], correct:1 },
+      { q:"Racks at the Garden Gates are meant to:", options:["Store overflow only","Capture impulse sales","Block the entrance","Hold empty pots"], correct:1 },
+      { q:"PW and Vigoro staged racks need:", options:["No signage","Just a price tag","An extra BMSM 5x8 sign","A tarp"], correct:2 }
+    ]
+  },
+
+  // ---------------- Day 5 — IGC Merchandising ----------------
+  { id:"igc-ad", day:5, icon:"🔦", title:"IGC AD Section", xp:50,
+    blurb:"The spotlight area closest to the registers.",
+    summary:[
+      "The <b>AD Section</b> is the first 8 feet on the perennial table closest to the registers — no hanging basket fixture here.",
+      "Striped short to tall year-round; used for Home Depot ads, HF sale items, or that week's planogrammed product.",
+      "12x24 and 5x8 signage both vary weekly with the IGC Garden Plans."
+    ],
+    irlTask:"Walk your IGC with your supervisor and point out the AD Section.",
+    quiz:[
+      { q:"Where is the AD Section?", options:["Farthest from the registers","First 8 feet closest to the registers","In the parking lot","On pallets only"], correct:1 },
+      { q:"The AD Section has:", options:["A hanging basket fixture","No hanging basket fixture","Only shrubs","No signage ever"], correct:1 }
+    ]
+  },
+  { id:"igc-tables", day:5, icon:"🪴", title:"IGC Tables, Grass & Groundcover", xp:60,
+    blurb:"Blocking, sun vs. shade, and the specialty tables.",
+    summary:[
+      "Garden Center Tables 1 & 2 are <b>blocked</b> (not striped) — keep shade perennials protected and sun varieties out of shade cover.",
+      "The <b>Grass Table</b> is blocked short to tall, in the back of the IGC or the parking lot corral.",
+      "The <b>Groundcover Table</b> is blocked year-round, under the shade canopy or lattice if it's exposed to sun — sun varieties go on the back IGC table."
+    ],
+    quiz:[
+      { q:"Garden Center Tables 1 & 2 are:", options:["Striped","Blocked","Left empty","Random"], correct:1 },
+      { q:"Where do sun-loving groundcover varieties go?", options:["Under full shade canopy only","The back IGC table","Nowhere — they're discontinued","In the compactor"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 6 — Corral & Outdoor Wrap-Up ----------------
+  { id:"corral", day:6, icon:"🚛", title:"Corral Merchandising", xp:60,
+    blurb:"Perennials, PW shrubs, and OPP shrubs in the parking lot.",
+    summary:[
+      "Corral perennial tables (for space-tight stores) are striped short to tall, with lattice added to hanging basket fixtures.",
+      "<b>PW Shrubs</b> go on tables when possible, overflow on pallets — 12x24 signage is Proven Winner Shrubs.",
+      "<b>OPP Shrubs</b> follow the same table/pallet pattern with generic Shrubs signage."
+    ],
+    quiz:[
+      { q:"PW Shrub overflow is merchandised on:", options:["The roof","Pallets","The Apron only","Nowhere — it's returned"], correct:1 },
+      { q:"Corral perennial tables need:", options:["No lattice","Lattice on the hanging basket fixtures","A hard canopy always","Wreaths"], correct:1 }
+    ]
+  },
+  { id:"outdoor-wrap", day:6, icon:"📸", title:"Outdoor Pictures, Checklist & Watering", xp:60,
+    blurb:"Closing out the outdoor area the right way.",
+    summary:[
+      "Pictures are taken <b>after</b> merchandising, signage, and sweeping — but <b>before</b> watering, with carts and shadows out of frame.",
+      "The store-walk checklist order is: readiness → delivery check → HF App review → restock → racks → signage → clean up/water → pictures.",
+      "Water outdoor product in the morning or evening — never 10am–4pm during peak season — and check the weight, soil, and wilt of a plant to know if it's thirsty."
+    ],
+    quiz:[
+      { q:"When should outdoor merchandising photos be taken?", options:["Before sweeping","Before signage is up","After sweeping, before watering","During customer rush hour"], correct:2 },
+      { q:"Which is one of the 3 watering tests?", options:["Smell test","Weight test","Sound test","Color-only test"], correct:1 },
+      { q:"When should you avoid watering during peak season?", options:["Early morning","10am–4pm","Late evening","Never — water whenever"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 7 — Systems & Reference ----------------
+  { id:"planograms", day:7, icon:"🗺", title:"Planograms & the HF App", xp:50,
+    blurb:"How our space gets decided, and where the weekly plan lives.",
+    summary:[
+      "Planograms give each vendor company dedicated space — perennial space is blue, shrub space is green, Rio/Tropical space is purple.",
+      "They're finalized every year by March 1st after Director-level conference calls with District Managers and Field Supervisors.",
+      "The HF App is updated every Monday with Garden Plans, Outdoor Guidelines, sale items, and shipping dates — check it before you start your walk."
+    ],
+    quiz:[
+      { q:"On a planogram, perennial space is color-coded:", options:["Green","Purple","Blue","Red"], correct:2 },
+      { q:"How often is the HF App's Outdoor Guidelines updated?", options:["Daily","Every Monday","Once a season","Never"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 8 — Houseplant Pods I ----------------
+  { id:"hpa-pods1", day:8, icon:"🌿", title:"PW, Blooming & Orchid Pods", xp:70,
+    blurb:"The front row of the HPA racetrack.",
+    summary:[
+      "The <b>PW Pod</b> sits closest to the Main Entrance — premium varieties in upgraded pots, striped short to tall.",
+      "The <b>Blooming Pod</b> sits next to PW — keep plant and pot colors grouped together; anthuriums and peace lilies are options too.",
+      "The <b>Orchid Pod</b> sits near PW as well (or between Blooming and PW on a 6-pod set) — smaller sizes go in the highlight area.",
+      "Across all pods: tags face the customer, and the bottom of every pod is restocked two rows deep."
+    ],
     quiz:[
       { q:"Which pod is closest to the Main Entrance?", options:["Vigoro","Orchid","PW","Home Decor"], correct:2 },
       { q:"How deep should the bottom of a pod be stocked?", options:["One row","Two rows","Not at all","Five rows"], correct:1 },
-      { q:"Best time to water houseplants?", options:["Midday","Morning or evening","Never","Only Fridays"], correct:1 }
+      { q:"On the Blooming Pod, you should try to keep:", options:["All pots the same size","Plant and pot colors together","Only red flowers","Nothing organized"], correct:1 }
     ]
   },
-  { id:"pests", icon:"🐛", title:"Pest Patrol", xp:60,
+  { id:"hpa-pods2", day:8, icon:"🎍", title:"Vigoro, Home Decor & Specialty Pods", xp:70,
+    blurb:"The back row and the Hanging Basket Pod.",
+    summary:[
+      "The <b>Vigoro Pod</b> sits behind the PW pod — Vigoro is exclusive to Home Depot.",
+      "The <b>Home Decor Pod</b> sits behind Blooming — bamboo, bonsai, and specialty items in premium pots.",
+      "The <b>Breathe Easy Pod</b> (six-pod sets only) sits farthest from the entrance — non-branded and 4in foliage.",
+      "The <b>Hanging Basket Pod</b> is centered in the back row, striped on bars by variety — nothing stored on its bottom shelf, ever."
+    ],
+    quiz:[
+      { q:"Vigoro product is exclusive to:", options:["Lowe's","Home Depot","Walmart","Costco"], correct:1 },
+      { q:"What goes on the bottom of the Hanging Basket Pod?", options:["Overflow product","Storage boxes","Nothing", "4in foliage"], correct:2 },
+      { q:"The Breathe Easy Pod only exists in stores with:", options:["A greenhouse","A six-pod set","A corral","A Monster Rack"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 9 — Beyond the Pods ----------------
+  { id:"tropicals", day:9, icon:"🌴", title:"Tropical Tables, Events & Patio", xp:60,
+    blurb:"Floor plants, seasonal events, and outdoor tropicals.",
+    summary:[
+      "Every store gets at least one <b>Tropical Table</b>, striped short to tall, with the Plant of the Month up front — 12x24 signage is Floor Plants.",
+      "<b>Tropical Events</b> run roughly October–February in the racetrack or garden drive aisle, featuring Tropicals, PW racks, cactus racks, and bulbs.",
+      "<b>Patio Tropicals</b> are merchandised outside, not in the HPA — shade varieties under the Hard Canopy or in the IGC, sun varieties on the Apron or Corral."
+    ],
+    quiz:[
+      { q:"What's the 12x24 signage for the Tropical Table?", options:["Floor Plants","Home Decor","Orchids","Grasses"], correct:0 },
+      { q:"Where do shade Patio Tropicals go?", options:["Direct sun on the Apron","Under the Hard Canopy or in the IGC","In the HPA","On the roof"], correct:1 }
+    ]
+  },
+  { id:"hpa-racks", day:9, icon:"🗄", title:"HPA Racks", xp:50,
+    blurb:"PW racks, 4in racks, and CC overflow.",
+    summary:[
+      "<b>PW Racks</b> live in the racetrack or leading off cactus runs — they flank Holiday tables when those go up.",
+      "<b>4in Racks</b> are permanent, ideally old PW racks, kept visible — never mix 4in product onto cactus racks.",
+      "<b>CC Racks</b> hold overflow, organized by category, and get worked onto pods whenever there's space."
+    ],
+    quiz:[
+      { q:"4in product should be displayed on:", options:["Cactus racks","Its own dedicated rack","The floor","Pallets only"], correct:1 },
+      { q:"CC rack overflow should eventually be:", options:["Thrown out","Worked onto pods when space opens up","Left on the rack forever","Sent back to the farm"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 10 — Indoor Wrap-Up & Pest Patrol ----------------
+  { id:"hpa-wrap", day:10, icon:"💧", title:"HPA Pictures, Checklist & Watering", xp:60,
+    blurb:"Closing out the HPA the right way.",
+    summary:[
+      "Indoor photos are taken after everything is swept and restocked, but before watering — labels facing out, no carts or ladders in frame.",
+      "Water indoor product morning or evening, never 10am–4pm in peak season — always place caution signs before you start.",
+      "After watering, squeegee excess water to the drains so puddles don't form — this is on you, not just the store."
+    ],
+    quiz:[
+      { q:"When should HPA photos be taken?", options:["Before sweeping","After restocking, before watering","During customer rush","After watering"], correct:1 },
+      { q:"After watering indoors, you should:", options:["Leave puddles for the store to handle","Squeegee water to the drains","Turn off the lights","Nothing else needed"], correct:1 }
+    ]
+  },
+  { id:"pests", day:10, icon:"🐛", title:"Pest Patrol", xp:70,
     blurb:"Spot the signs before they spread.",
     summary:[
       "<b>Aphids</b> hide on leaf undersides — look for stickiness and curling leaves.",
       "<b>Mealybugs</b> leave cotton-like tufts where leaves meet the stem.",
       "<b>Scale</b> shows up as tiny shell-like bumps, often with sticky sap or black fungus nearby.",
       "<b>Spider mites</b> give leaves a faded, sunburned look with fine webbing.",
-      "See a pest? Photo it, count how many plants are affected, and tell your supervisor immediately — don't try to treat it yourself."
+      "See a pest — or signs of rodents like gnawed pots and dirt piles? Photo it, count affected plants, and tell your supervisor immediately. Don't try to treat it yourself."
     ],
     irlTask:"Do a pest inspection walk of one pod or table with your supervisor.",
     quiz:[
@@ -7143,7 +7322,37 @@ const TRAINING_LEVELS=[
       { q:"Tiny shell-like bumps on stems are:", options:["Scale","Mealybugs","Aphids","Mites"], correct:0 }
     ]
   },
-  { id:"expectations", icon:"📋", title:"Daily Recaps & Expectations", xp:60,
+
+  // ---------------- Day 11 — Holiday & Third-Party ----------------
+  { id:"holiday", day:11, icon:"🎄", title:"Holiday Merchandising Basics", xp:70,
+    blurb:"Signage, prep, and the Display Box.",
+    summary:[
+      "Apron holiday signage is mirrored on each side of the gates: Holiday Décor → Don't Forget → Real Christmas Tree Benefits.",
+      "Before Holiday goes up, tables/endcaps get fixed and deep-cleaned, and headers go up with bolts — never zip ties.",
+      "The <b>Display Box</b> (branch bundles, pinecone sticks, birch logs) is built at store level and kept under the Hard Canopy, out of the weather.",
+      "<b>Wreaths</b> go in the IGC to protect them — never hung on Garden Gates or hanging basket fixtures where they'll dry out."
+    ],
+    quiz:[
+      { q:"Holiday headers should be attached with:", options:["Zip ties","Bolts","Tape","Glue"], correct:1 },
+      { q:"Where should wreaths NOT be hung?", options:["IGC tables","Wreath bays","Garden Gates","Racks"], correct:2 },
+      { q:"The Display Box needs to be:", options:["Left out in the weather","Kept under the Hard Canopy","Stored in receiving all season","Assembled at the farm"], correct:1 }
+    ]
+  },
+  { id:"thirdparty", day:11, icon:"🤝", title:"Third-Party Partners", xp:50,
+    blurb:"Altman, Natural Creations, and Rio/Fernlea.",
+    summary:[
+      "Merchandisers also service select <b>third-party</b> companies' product alongside Hampshire Farms displays.",
+      "<b>Altman</b> (cactus & succulents) and <b>Natural Creations</b> use their own inventory apps for deliveries, cycle counts, and scrap.",
+      "<b>Rio/Fernlea</b> tables should keep price points together, ascending front to back, color-blocked, striped, and signed — same merchandising instincts you're already building."
+    ],
+    quiz:[
+      { q:"Third-party product is merchandised:", options:["Never — it's off-limits","Alongside Hampshire Farms displays, per their notes","Only by the vendor's own staff","In a locked room"], correct:1 },
+      { q:"Rio/Fernlea tables should be:", options:["Random","Price points together, color-blocked, and signed","Hidden from customers","Unsigned"], correct:1 }
+    ]
+  },
+
+  // ---------------- Day 12 — Final Stretch ----------------
+  { id:"expectations", day:12, icon:"📋", title:"Daily Recaps & Expectations", xp:60,
     blurb:"Start times, dress code, and what to send your supervisor.",
     summary:[
       "Mandatory start time is <b>8:00 AM</b> — weekends and a handful of major holidays are mandatory work days.",
@@ -7159,7 +7368,7 @@ const TRAINING_LEVELS=[
       { q:"Closed-toe shoes are:", options:["Optional","Required","Only for winter","Only in the HPA"], correct:1 }
     ]
   },
-  { id:"grad", icon:"🌟", title:"Certification", xp:100,
+  { id:"grad", day:12, icon:"🌟", title:"Certification", xp:150,
     blurb:"Sign off with your supervisor and claim your badge.",
     summary:[
       "You've made it through every level — nice work.",
@@ -7171,22 +7380,37 @@ const TRAINING_LEVELS=[
   }
 ];
 
-let training={ xp:0, completed:{} };
+let training={ xp:0, completed:{}, startedAt:0 };
 function trainingTotalLevels(){ return TRAINING_LEVELS.length; }
 function trainingDoneCount(){ return Object.keys(training.completed).length; }
+function trainingTotalDays(){ return TRAINING_LEVELS[TRAINING_LEVELS.length-1].day; }
+function trainingCurrentDay(){
+  if(!training.startedAt) return 1;
+  const elapsed=Date.now()-training.startedAt;
+  return Math.max(1, Math.floor(elapsed/(TRAINING_DAY_HOURS*3600000))+1);
+}
 function trainingRankLabel(){
   const n=trainingDoneCount(), total=trainingTotalLevels();
   if(n>=total) return "🌟 Certified Merchandiser";
   if(n===0) return "🌱 New Hire";
-  if(n<total/2) return "🧑‍🌾 Trainee";
-  return "🪴 Rising Merchandiser";
+  if(n<total*0.3) return "🧑‍🌾 Trainee";
+  if(n<total*0.65) return "🪴 Rising Merchandiser";
+  return "🌳 Seasoned Merchandiser";
 }
+/* A level's state depends on both sequence (previous level done) AND pacing
+   (its day has actually arrived) — whichever gate is stricter wins. */
 function levelState(idx){
   const lvl=TRAINING_LEVELS[idx];
   if(training.completed[lvl.id]) return "complete";
-  if(idx===0) return "current";
-  const prev=TRAINING_LEVELS[idx-1];
-  return training.completed[prev.id] ? "current" : "locked";
+  const prevDone = idx===0 || !!training.completed[TRAINING_LEVELS[idx-1].id];
+  if(!prevDone) return "locked-progress";
+  if(lvl.day>trainingCurrentDay()) return "locked-day";
+  return "current";
+}
+function hoursUntilDay(day){
+  if(!training.startedAt) return 0;
+  const unlockAt=training.startedAt+(day-1)*TRAINING_DAY_HOURS*3600000;
+  return Math.max(0, Math.ceil((unlockAt-Date.now())/3600000));
 }
 function loadTraining(){
   if(!db || !me.uid) return;
@@ -7194,12 +7418,18 @@ function loadTraining(){
     const v=snap.val()||{};
     training.xp=v.xp||0;
     training.completed=v.completed||{};
+    if(!v.startedAt){
+      training.startedAt=Date.now();
+      persistTraining();
+    } else {
+      training.startedAt=v.startedAt;
+    }
     if(curView==="training") renderTrainingPath();
   }, err=>console.error("training read:",err));
 }
 function persistTraining(){
   if(!db || !me.uid) return;
-  update(ref(db,"training/"+me.uid), { xp:training.xp, completed:training.completed }).catch(console.error);
+  update(ref(db,"training/"+me.uid), { xp:training.xp, completed:training.completed, startedAt:training.startedAt||Date.now() }).catch(console.error);
 }
 function renderTrainingPath(){
   const wrap=$("trainPath"); if(!wrap) return;
@@ -7208,20 +7438,33 @@ function renderTrainingPath(){
   const rankEl=$("trainRank"); if(rankEl) rankEl.textContent=trainingRankLabel();
   const cntEl=$("trainLevelCount"); if(cntEl) cntEl.textContent=done+" / "+total+" levels complete";
   const bar=$("trainProgressBar"); if(bar) bar.style.width=Math.round(done/total*100)+"%";
-  wrap.innerHTML=TRAINING_LEVELS.map((lvl,i)=>{
+  const dayNote=$("trainDayNote");
+  if(dayNote){
+    const curDay=trainingCurrentDay(), totalDays=trainingTotalDays();
+    dayNote.textContent = done>=total
+      ? "🌟 Program complete — you're a Certified Merchandiser!"
+      : `📅 Day ${Math.min(curDay,totalDays)} of ${totalDays} — a new day's lessons unlock roughly every ${TRAINING_DAY_HOURS} hours.`;
+  }
+  let lastDay=null, html="";
+  TRAINING_LEVELS.forEach((lvl,i)=>{
+    if(lvl.day!==lastDay){ html+=`<div class="train-day-label">Day ${lvl.day}</div>`; lastDay=lvl.day; }
     const state=levelState(i);
-    const dot=state==="complete"?"✅":state==="locked"?"🔒":lvl.icon;
-    return `<div class="train-node ${state}" data-idx="${i}">
+    const dot = state==="complete" ? "✅" : state==="locked-progress" ? "🔒" : state==="locked-day" ? "⏳" : lvl.icon;
+    const cls = state==="locked-progress" ? "locked" : state==="locked-day" ? "locked-day" : state;
+    const unlockNote = state==="locked-day" ? `<div class="tn-unlock">⏳ Unlocks in ~${hoursUntilDay(lvl.day)}h (Day ${lvl.day})</div>` : "";
+    html+=`<div class="train-node ${cls}" data-idx="${i}">
       <div class="tn-dot">${dot}</div>
       <div class="tn-card">
         <div class="tn-title">${esc(lvl.title)}</div>
         <div class="tn-sub">${esc(lvl.blurb)}</div>
         <div class="tn-xp">+${lvl.xp} XP${lvl.irlTask?" · real-world task":""}${state==="complete"?" · Complete! ✅":""}</div>
+        ${unlockNote}
       </div>
     </div>`;
-  }).join("");
+  });
+  wrap.innerHTML=html;
   $$('.train-node', wrap).forEach(node=>{
-    if(node.classList.contains("locked")) return;
+    if(node.classList.contains("locked") || node.classList.contains("locked-day")) return;
     node.addEventListener("click",()=> openTrainingLevel(parseInt(node.dataset.idx,10)));
   });
 }
@@ -7328,11 +7571,7 @@ function completeLevel(lvl){
 }
 function finishTrainingCelebration(){
   openModal("trainGradModal");
-  if(db){
-    const node=push(ref(db,"feed"));
-    set(node,{ uid:me.uid, name:me.name, emoji:me.emoji, color:me.color,
-      text:"just completed Merchandiser Training and earned the 🌟 Certified Merchandiser badge!", kind:"post", ts:Date.now() }).catch(()=>{});
-  }
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`became a Certified Merchandiser 🌟`);
 }
 function initTraining(){
   const startBtn=$("tlStartQuiz");
