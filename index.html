@@ -891,6 +891,46 @@
     .train-node.locked-day .tn-card{ opacity:.7; }
     .train-node .tn-unlock{ font-size:.72rem; color:var(--warn); font-weight:700; margin-top:6px; }
 
+    /* ---------- Training mini-games ---------- */
+    .game-prompt{ font-weight:700; color:var(--heading); font-size:.9rem; margin-bottom:12px; }
+    .game-item-row{ display:flex; align-items:center; gap:8px; padding:9px 10px; border:1px solid var(--line);
+      border-radius:10px; margin-bottom:8px; font-size:.85rem; flex-wrap:wrap; }
+    .game-item-row .gi-label{ flex:1; min-width:140px; }
+    .game-item-row .gi-btn{ padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2);
+      color:var(--text); font-size:.76rem; font-weight:700; cursor:pointer; font-family:inherit; }
+    .game-item-row .gi-btn:hover{ border-color:var(--accent-line); }
+    .game-item-row.correct{ border-color:var(--good); background:rgba(61,220,151,.10); }
+    .game-item-row.wrong{ border-color:var(--bad); background:rgba(240,106,106,.10); }
+    .game-item-row.answered .gi-btn{ pointer-events:none; opacity:.6; }
+    .seq-pool{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .seq-pool button{ padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--line);
+      background:var(--panel-2); color:var(--text); font-size:.82rem; cursor:pointer; font-family:inherit; }
+    .seq-pool button:hover{ border-color:var(--accent-line); }
+    .seq-slots{ display:flex; flex-direction:column; gap:6px; }
+    .seq-slot{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px dashed var(--line);
+      border-radius:8px; font-size:.82rem; color:var(--muted); min-height:20px; }
+    .seq-slot.filled{ border-style:solid; color:var(--text); }
+    .seq-slot .sn{ flex:0 0 auto; font-weight:800; color:var(--accent); }
+    .seq-slot.correct{ border-color:var(--good); background:rgba(61,220,151,.10); color:var(--text); }
+    .seq-slot.wrong{ border-color:var(--bad); background:rgba(240,106,106,.10); color:var(--text); }
+    .match-cols{ display:flex; gap:12px; }
+    .match-col{ flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
+    .match-btn{ padding:9px 10px; border-radius:10px; border:1px solid var(--line); background:var(--panel-2);
+      color:var(--text); font-size:.78rem; cursor:pointer; font-family:inherit; text-align:left; line-height:1.35; }
+    .match-btn:hover{ border-color:var(--accent-line); }
+    .match-btn.sel{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+    .match-btn.matched{ opacity:.35; pointer-events:none; border-color:var(--good); }
+    .match-btn.flash-wrong{ border-color:var(--bad); background:rgba(240,106,106,.14); }
+    .bug-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+    .bug-cell{ aspect-ratio:1; border-radius:12px; background:var(--panel-2); border:1px solid var(--line);
+      display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; user-select:none; }
+    .bug-cell.pest{ animation:bugPop .15s ease; }
+    @keyframes bugPop{ from{ transform:scale(.6); } to{ transform:scale(1); } }
+    .game-hud{ display:flex; justify-content:space-between; font-size:.82rem; font-weight:700; color:var(--heading); margin-bottom:10px; }
+    .game-result{ text-align:center; padding:14px; border-radius:var(--radius-sm); font-weight:700; margin-top:10px; }
+    .game-result.pass{ background:rgba(61,220,151,.14); color:var(--good); }
+    .game-result.fail{ background:rgba(240,106,106,.14); color:var(--bad); }
+
     /* Reactions + mentions */
     .rx-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
     .rx-chip{ display:inline-flex; align-items:center; gap:3px; font-size:.78rem; padding:3px 8px; border-radius:var(--radius-pill);
@@ -1795,6 +1835,7 @@
     <div id="tlQuizWrap"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="trainLevelModal" type="button">Close</button>
+      <button id="tlPlayGame" class="btn btn-ghost hidden" type="button">🎮 Play Mini-Game</button>
       <button id="tlStartQuiz" class="btn btn-primary" type="button">Start Quiz</button>
       <button id="tlComplete" class="btn btn-primary hidden" type="button">✅ Complete Level</button>
     </div>
@@ -7076,6 +7117,18 @@ const TRAINING_LEVELS=[
       "Anything marked down comes off the floor and into the compactor — no exceptions."
     ],
     irlTask:"Complete your first Picas store visit and markdown entry with your supervisor watching.",
+    game:{ type:"sort", xp:20, prompt:"🗑 Toss it or ✅ keep it? Sort each item.",
+      buckets:["🗑 Markdown","✅ Keep on shelf"],
+      items:[
+        { label:"Plant covered in aphids", correct:0 },
+        { label:"Fresh delivery, just unloaded", correct:1 },
+        { label:"Pot is cracked down the side", correct:0 },
+        { label:"Healthy fern, fully priced", correct:1 },
+        { label:"Floral plant, no longer blooming", correct:0 },
+        { label:"More than 50% yellowing leaves", correct:0 },
+        { label:"Slightly dusty but otherwise perfect", correct:1 }
+      ]
+    },
     quiz:[
       { q:"By when do markdowns need to be entered each week?", options:["Monday morning","Thursday evening","Saturday","End of the month"], correct:1 },
       { q:"What's the max SKU markdown per visit without approval?", options:["5","10","25","No limit"], correct:1 },
@@ -7110,6 +7163,32 @@ const TRAINING_LEVELS=[
     quiz:[
       { q:"Why do empty CC racks need to go back quickly?", options:["They're recyclable","Hampshire Farms pays a daily rental fee","They attract pests","No real reason"], correct:1 },
       { q:"Before a rack is picked up, you should remove:", options:["Nothing","Debris and third-party banners","The wheels","The shelves"], correct:1 }
+    ]
+  },
+  { id:"glossary", day:2, icon:"🗂", title:"Speak the Lingo", xp:40,
+    blurb:"The Home Depot / Hampshire Farms glossary.",
+    summary:[
+      "Every store has its own shorthand — knowing these terms will make the rest of training (and your first day) much easier.",
+      "<b>End Caps</b> are the lower metal pieces in front of a table used to showcase higher price-point items.",
+      "<b>Apron</b> is the area in front of the store, outside the garden gates. <b>IGC</b> (Inside Garden Center) is inside the gates.",
+      "<b>Striping</b> mirrors product side to side; <b>Blocking</b> splits varieties by row; <b>Flanking</b> puts a tall item in the middle with smaller ones on each side.",
+      "<b>Corral</b> is the temporary parking-lot area used for trees, shrubs, tropicals, and annuals in season."
+    ],
+    game:{ type:"match", xp:25, prompt:"Match each term to what it means.",
+      pairs:[
+        { a:"End Caps", b:"Lower metal pieces in front of a table for higher price-point items" },
+        { a:"Apron", b:"The area in front of the store, outside the garden gates" },
+        { a:"IGC", b:"Inside Garden Center — inside the gates" },
+        { a:"Striping", b:"Mirroring product on both sides of a table" },
+        { a:"Blocking", b:"Splitting sun/shade varieties by row" },
+        { a:"Flanking", b:"A taller item centered on an endcap, smaller items on each side" },
+        { a:"Corral", b:"Temporary parking-lot area for trees, shrubs, tropicals, and annuals" }
+      ]
+    },
+    quiz:[
+      { q:"\"IGC\" stands for:", options:["Inside Garden Center","Indoor Growing Container","Individual Grower Code","In Garden Corral"], correct:0 },
+      { q:"A taller item centered on an endcap with smaller items on each side is called:", options:["Striping","Blocking","Flanking","Corralling"], correct:2 },
+      { q:"The Corral is used for:", options:["Employee parking","Trees, shrubs, tropicals, and annuals","Storing empty pots","Nothing — it's not a real space"], correct:1 }
     ]
   },
 
@@ -7215,6 +7294,17 @@ const TRAINING_LEVELS=[
       "The store-walk checklist order is: readiness → delivery check → HF App review → restock → racks → signage → clean up/water → pictures.",
       "Water outdoor product in the morning or evening — never 10am–4pm during peak season — and check the weight, soil, and wilt of a plant to know if it's thirsty."
     ],
+    game:{ type:"sequence", xp:20, prompt:"Put the store-walk steps in the right order.",
+      steps:[
+        "Check readiness — are tables and racks shoppable?",
+        "Do your delivery check",
+        "Open the HF App for this week's guidelines",
+        "Restock endcaps and tables",
+        "Condense and sign your racks",
+        "Sweep and water",
+        "Take your pictures"
+      ]
+    },
     quiz:[
       { q:"When should outdoor merchandising photos be taken?", options:["Before sweeping","Before signage is up","After sweeping, before watering","During customer rush hour"], correct:2 },
       { q:"Which is one of the 3 watering tests?", options:["Smell test","Weight test","Sound test","Color-only test"], correct:1 },
@@ -7259,6 +7349,15 @@ const TRAINING_LEVELS=[
       "The <b>Breathe Easy Pod</b> (six-pod sets only) sits farthest from the entrance — non-branded and 4in foliage.",
       "The <b>Hanging Basket Pod</b> is centered in the back row, striped on bars by variety — nothing stored on its bottom shelf, ever."
     ],
+    game:{ type:"sequence", xp:25, prompt:"Order the pods from the Main Entrance to the back row.",
+      steps:[
+        "PW Pod",
+        "Blooming / Orchid Pod",
+        "Vigoro Pod",
+        "Home Decor / Breathe Easy Pod",
+        "Hanging Basket Pod (centered, back row)"
+      ]
+    },
     quiz:[
       { q:"Vigoro product is exclusive to:", options:["Lowe's","Home Depot","Walmart","Costco"], correct:1 },
       { q:"What goes on the bottom of the Hanging Basket Pod?", options:["Overflow product","Storage boxes","Nothing", "4in foliage"], correct:2 },
@@ -7314,6 +7413,7 @@ const TRAINING_LEVELS=[
       "<b>Spider mites</b> give leaves a faded, sunburned look with fine webbing.",
       "See a pest — or signs of rodents like gnawed pots and dirt piles? Photo it, count affected plants, and tell your supervisor immediately. Don't try to treat it yourself."
     ],
+    game:{ type:"arcade", xp:30, duration:15, passScore:8 },
     irlTask:"Do a pest inspection walk of one pod or table with your supervisor.",
     quiz:[
       { q:"Cotton-like tufts near the stem are a sign of:", options:["Aphids","Mealybugs","Scale","Rodents"], correct:1 },
@@ -7360,6 +7460,17 @@ const TRAINING_LEVELS=[
       "Photos are taken <b>after sweeping but before watering</b> — no carts, garbage, or wet floor signs in frame.",
       "Dress code: Hampshire shirt, full-length pants, closed-toe shoes, work gloves."
     ],
+    game:{ type:"sort", xp:20, prompt:"✅ Compliant or 🚫 not compliant with dress code?",
+      buckets:["✅ Compliant","🚫 Not compliant"],
+      items:[
+        { label:"Hampshire Farms shirt", correct:0 },
+        { label:"Ripped jeans", correct:1 },
+        { label:"Closed-toe work shoes", correct:0 },
+        { label:"Flip-flops", correct:1 },
+        { label:"Work gloves", correct:0 },
+        { label:"Cropped tank top", correct:1 }
+      ]
+    },
     irlTask:"Send your supervisor your first complete daily recap with photos.",
     quiz:[
       { q:"When should you take your merchandising photos?", options:["Before sweeping","After sweeping but before watering","After watering","Whenever's convenient"], correct:1 },
@@ -7380,7 +7491,7 @@ const TRAINING_LEVELS=[
   }
 ];
 
-let training={ xp:0, completed:{}, startedAt:0 };
+let training={ xp:0, completed:{}, startedAt:0, gamesPlayed:{} };
 function trainingTotalLevels(){ return TRAINING_LEVELS.length; }
 function trainingDoneCount(){ return Object.keys(training.completed).length; }
 function trainingTotalDays(){ return TRAINING_LEVELS[TRAINING_LEVELS.length-1].day; }
@@ -7418,6 +7529,7 @@ function loadTraining(){
     const v=snap.val()||{};
     training.xp=v.xp||0;
     training.completed=v.completed||{};
+    training.gamesPlayed=v.gamesPlayed||{};
     if(!v.startedAt){
       training.startedAt=Date.now();
       persistTraining();
@@ -7429,7 +7541,7 @@ function loadTraining(){
 }
 function persistTraining(){
   if(!db || !me.uid) return;
-  update(ref(db,"training/"+me.uid), { xp:training.xp, completed:training.completed, startedAt:training.startedAt||Date.now() }).catch(console.error);
+  update(ref(db,"training/"+me.uid), { xp:training.xp, completed:training.completed, startedAt:training.startedAt||Date.now(), gamesPlayed:training.gamesPlayed }).catch(console.error);
 }
 function renderTrainingPath(){
   const wrap=$("trainPath"); if(!wrap) return;
@@ -7470,6 +7582,7 @@ function renderTrainingPath(){
 }
 let tlIdx=null;
 function openTrainingLevel(idx){
+  stopActiveGameTimer();
   const lvl=TRAINING_LEVELS[idx]; if(!lvl) return;
   tlIdx=idx;
   $("tlIcon").textContent=lvl.icon;
@@ -7484,8 +7597,12 @@ function openTrainingLevel(idx){
   } else setVis($("tlIrlWrap"), false);
   $("tlQuizWrap").innerHTML="";
   const already=!!training.completed[lvl.id];
-  const startBtn=$("tlStartQuiz"), doneBtn=$("tlComplete");
+  const startBtn=$("tlStartQuiz"), doneBtn=$("tlComplete"), gameBtn=$("tlPlayGame");
   setVis(doneBtn, false);
+  if(gameBtn){
+    setVis(gameBtn, !!lvl.game);
+    gameBtn.textContent = (lvl.game && training.gamesPlayed && training.gamesPlayed[lvl.id]) ? "🎮 Play Again" : "🎮 Play Mini-Game";
+  }
   if(lvl.quiz){
     setVis(startBtn, true);
     startBtn.textContent=already?"Retake Quiz":"Start Quiz";
@@ -7558,6 +7675,217 @@ function submitQuiz(lvl){
     result.after(retry);
   }
 }
+
+/* ============================================================
+   TRAINING MINI-GAMES — small, replayable, award a one-time XP
+   bonus per level the first time they're won. Purely for fun and
+   reinforcement; never required to complete a level.
+   ============================================================ */
+let gameActiveInterval=null;
+function stopActiveGameTimer(){
+  if(gameActiveInterval){ clearInterval(gameActiveInterval); gameActiveInterval=null; }
+}
+function awardGameXP(lvl, resultEl){
+  const already=!!(training.gamesPlayed[lvl.id]);
+  if(!already){
+    training.gamesPlayed[lvl.id]=true;
+    training.xp+=lvl.game.xp;
+    persistTraining();
+    renderTrainingPath();
+  }
+  return already;
+}
+function playMiniGame(lvl){
+  stopActiveGameTimer();
+  const startBtn=$("tlStartQuiz"), doneBtn=$("tlComplete"), gameBtn=$("tlPlayGame");
+  setVis(startBtn,false); setVis(doneBtn,false); setVis(gameBtn,false);
+  const g=lvl.game;
+  if(g.type==="sort") renderSortGame(lvl);
+  else if(g.type==="sequence") renderSequenceGame(lvl);
+  else if(g.type==="match") renderMatchGame(lvl);
+  else if(g.type==="arcade") renderArcadeGame(lvl);
+}
+function backFromGame(lvl){
+  stopActiveGameTimer();
+  openTrainingLevel(tlIdx);
+}
+function gameFinishBar(lvl, passed, scoreText){
+  const already=training.gamesPlayed[lvl.id];
+  const xpNote = already ? "(already earned)" : `+${lvl.game.xp} XP!`;
+  return `<div class="game-result ${passed?"pass":"fail"}">${scoreText} ${passed?xpNote:"— give it another go!"}</div>
+    <button id="gameBack" class="btn btn-ghost" type="button" style="width:100%;margin-top:10px;">← Back to level</button>`;
+}
+function wireGameBack(lvl){
+  const b=$("gameBack"); if(b) b.addEventListener("click",()=> backFromGame(lvl));
+}
+
+/* ----- Sort game: click each item into the correct bucket ----- */
+function renderSortGame(lvl){
+  const g=lvl.game;
+  const wrap=$("tlQuizWrap");
+  wrap.innerHTML=`<div class="game-prompt">${esc(g.prompt)}</div>
+    <div id="sortItems"></div>
+    <div id="sortDone" class="hidden"></div>`;
+  let answered=0, correct=0;
+  const itemsEl=$("sortItems");
+  itemsEl.innerHTML=g.items.map((it,i)=>`
+    <div class="game-item-row" data-i="${i}">
+      <span class="gi-label">${esc(it.label)}</span>
+      ${g.buckets.map((b,bi)=>`<button type="button" class="gi-btn" data-bi="${bi}">${esc(b)}</button>`).join("")}
+    </div>`).join("");
+  $$('.game-item-row', itemsEl).forEach(row=>{
+    const i=parseInt(row.dataset.i,10);
+    $$('.gi-btn', row).forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        if(row.classList.contains("answered")) return;
+        const bi=parseInt(btn.dataset.bi,10);
+        const isRight=bi===g.items[i].correct;
+        row.classList.add("answered", isRight?"correct":"wrong");
+        answered++; if(isRight) correct++;
+        if(answered>=g.items.length){
+          const passed=(correct/g.items.length)>=0.7;
+          awardGameXP(lvl);
+          const done=$("sortDone"); done.classList.remove("hidden");
+          done.innerHTML=gameFinishBar(lvl, passed, `${correct}/${g.items.length} correct.`);
+          wireGameBack(lvl);
+        }
+      });
+    });
+  });
+}
+
+/* ----- Sequence game: tap items in the order you think is correct ----- */
+function renderSequenceGame(lvl){
+  const g=lvl.game;
+  const wrap=$("tlQuizWrap");
+  const shuffled=g.steps.map((s,i)=>({ s, i })).sort(()=>Math.random()-0.5);
+  const placed=[];
+  wrap.innerHTML=`<div class="game-prompt">${esc(g.prompt)}</div>
+    <div class="seq-pool" id="seqPool"></div>
+    <div class="seq-slots" id="seqSlots"></div>
+    <div id="seqDone" class="hidden"></div>`;
+  function drawPool(){
+    $("seqPool").innerHTML=shuffled
+      .filter(o=>!placed.includes(o.i))
+      .map(o=>`<button type="button" data-orig="${o.i}">${esc(o.s)}</button>`).join("");
+    $$('#seqPool button').forEach(b=> b.addEventListener("click",()=>{
+      placed.push(parseInt(b.dataset.orig,10));
+      drawPool(); drawSlots();
+      if(placed.length===g.steps.length) finishSequence();
+    }));
+  }
+  function drawSlots(){
+    $("seqSlots").innerHTML=g.steps.map((_,i)=>{
+      const origIdx=placed[i];
+      const filled=origIdx!==undefined;
+      return `<div class="seq-slot ${filled?"filled":""}"><span class="sn">${i+1}.</span> ${filled?esc(g.steps[origIdx]):"…"}</div>`;
+    }).join("");
+  }
+  function finishSequence(){
+    let correctCount=0;
+    $$('#seqSlots .seq-slot').forEach((slot,i)=>{
+      const isRight=placed[i]===i;
+      slot.classList.add(isRight?"correct":"wrong");
+      if(isRight) correctCount++;
+    });
+    const passed=correctCount===g.steps.length;
+    awardGameXP(lvl);
+    const done=$("seqDone"); done.classList.remove("hidden");
+    done.innerHTML=gameFinishBar(lvl, passed, `${correctCount}/${g.steps.length} in the right spot.`);
+    wireGameBack(lvl);
+  }
+  drawPool(); drawSlots();
+}
+
+/* ----- Match game: pick a term, then its matching definition ----- */
+function renderMatchGame(lvl){
+  const g=lvl.game;
+  const wrap=$("tlQuizWrap");
+  const left=g.pairs.map((p,i)=>({ text:p.a, i })).sort(()=>Math.random()-0.5);
+  const right=g.pairs.map((p,i)=>({ text:p.b, i })).sort(()=>Math.random()-0.5);
+  let selLeft=null, matched=0, attempts=0;
+  wrap.innerHTML=`<div class="game-prompt">${esc(g.prompt)}</div>
+    <div class="match-cols">
+      <div class="match-col" id="matchLeft">${left.map(o=>`<button type="button" class="match-btn" data-i="${o.i}">${esc(o.text)}</button>`).join("")}</div>
+      <div class="match-col" id="matchRight">${right.map(o=>`<button type="button" class="match-btn" data-i="${o.i}">${esc(o.text)}</button>`).join("")}</div>
+    </div>
+    <div id="matchDone" class="hidden"></div>`;
+  const leftBtns=$$('#matchLeft .match-btn'), rightBtns=$$('#matchRight .match-btn');
+  leftBtns.forEach(b=> b.addEventListener("click",()=>{
+    if(b.classList.contains("matched")) return;
+    leftBtns.forEach(x=>x.classList.remove("sel"));
+    selLeft=b; b.classList.add("sel");
+  }));
+  rightBtns.forEach(b=> b.addEventListener("click",()=>{
+    if(b.classList.contains("matched") || !selLeft) return;
+    attempts++;
+    const li=parseInt(selLeft.dataset.i,10), ri=parseInt(b.dataset.i,10);
+    if(li===ri){
+      selLeft.classList.add("matched"); b.classList.add("matched");
+      selLeft.classList.remove("sel"); selLeft=null; matched++;
+      if(matched>=g.pairs.length){
+        const passed=attempts<=g.pairs.length+2; // a little slack for mis-clicks
+        awardGameXP(lvl);
+        const done=$("matchDone"); done.classList.remove("hidden");
+        done.innerHTML=gameFinishBar(lvl, passed, `All matched in ${attempts} tries.`);
+        wireGameBack(lvl);
+      }
+    } else {
+      b.classList.add("flash-wrong");
+      setTimeout(()=>{ b.classList.remove("flash-wrong"); if(selLeft) selLeft.classList.remove("sel"); selLeft=null; }, 450);
+    }
+  }));
+}
+
+/* ----- Arcade game: "Bug Sweep" — tap the pests, skip the ladybugs ----- */
+function renderArcadeGame(lvl){
+  const g=lvl.game;
+  const wrap=$("tlQuizWrap");
+  const PESTS=["🐛","🕷️","🦗"], DECOY="🐞", CELLS=16;
+  let score=0, timeLeft=g.duration;
+  wrap.innerHTML=`<div class="game-prompt">🐛 Bug Sweep — tap the pests, leave the ladybugs alone!</div>
+    <div class="game-hud"><span id="bugScore">Score: 0</span><span id="bugTime">${timeLeft}s</span></div>
+    <div class="bug-grid" id="bugGrid"></div>
+    <div id="bugDone" class="hidden"></div>`;
+  const grid=$("bugGrid");
+  const cells=[];
+  for(let i=0;i<CELLS;i++){
+    const c=document.createElement("div"); c.className="bug-cell"; c.dataset.state="empty";
+    grid.appendChild(c); cells.push(c);
+  }
+  function clearCell(c){ c.textContent=""; c.dataset.state="empty"; c.classList.remove("pest"); }
+  function popRandom(){
+    const empties=cells.filter(c=>c.dataset.state==="empty");
+    if(!empties.length) return;
+    const c=empties[Math.floor(Math.random()*empties.length)];
+    const isDecoy=Math.random()<0.28;
+    c.textContent=isDecoy?DECOY:PESTS[Math.floor(Math.random()*PESTS.length)];
+    c.dataset.state=isDecoy?"decoy":"pest";
+    c.classList.add("pest");
+    setTimeout(()=>{ if(c.dataset.state!=="empty") clearCell(c); }, 950);
+  }
+  cells.forEach(c=> c.addEventListener("click",()=>{
+    if(c.dataset.state==="pest"){ score++; clearCell(c); }
+    else if(c.dataset.state==="decoy"){ score=Math.max(0,score-1); clearCell(c); }
+    $("bugScore").textContent="Score: "+score;
+  }));
+  const popTimer=setInterval(popRandom, 550);
+  gameActiveInterval=setInterval(()=>{
+    timeLeft--;
+    $("bugTime").textContent=timeLeft+"s";
+    if(timeLeft<=0){
+      clearInterval(popTimer);
+      stopActiveGameTimer();
+      cells.forEach(clearCell);
+      const passed=score>=g.passScore;
+      awardGameXP(lvl);
+      const done=$("bugDone"); done.classList.remove("hidden");
+      done.innerHTML=gameFinishBar(lvl, passed, `Final score: ${score} (need ${g.passScore}+ to pass).`);
+      wireGameBack(lvl);
+    }
+  }, 1000);
+}
+
 function completeLevel(lvl){
   const alreadyDone=!!training.completed[lvl.id];
   training.completed[lvl.id]={ ts:Date.now() };
@@ -7574,6 +7902,15 @@ function finishTrainingCelebration(){
   if(typeof notifyManagerChange==="function") notifyManagerChange(`became a Certified Merchandiser 🌟`);
 }
 function initTraining(){
+  const tlModal=$("trainLevelModal");
+  if(tlModal){
+    tlModal.addEventListener("click",(e)=>{ if(e.target===tlModal || e.target.dataset.close==="trainLevelModal") stopActiveGameTimer(); });
+  }
+  const gameBtn=$("tlPlayGame");
+  if(gameBtn) gameBtn.addEventListener("click",()=>{
+    const lvl=TRAINING_LEVELS[tlIdx]; if(!lvl || !lvl.game) return;
+    playMiniGame(lvl);
+  });
   const startBtn=$("tlStartQuiz");
   if(startBtn) startBtn.addEventListener("click",()=>{
     const lvl=TRAINING_LEVELS[tlIdx]; if(!lvl || !lvl.quiz) return;
