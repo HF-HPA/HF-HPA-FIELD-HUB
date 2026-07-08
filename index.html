@@ -836,6 +836,53 @@
     .gs-item .gs-title{ font-size:.9rem; color:var(--heading); font-weight:600; }
     .gs-item .gs-sub{ font-size:.74rem; color:var(--muted); }
 
+    /* ---------- Searchable person picker (assign / shout-out / batch assign) ---------- */
+    .picker-wrap{ position:relative; }
+    .gs-dropdown{ display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60;
+      max-height:260px; overflow-y:auto; background:var(--panel); border:1px solid var(--line);
+      border-radius:var(--radius-sm); box-shadow:var(--shadow-lg); }
+    .gs-dropdown.show{ display:block; }
+    .gs-dropdown .gs-item{ padding:9px 12px; }
+
+    /* ---------- Training tab: level path + quiz ---------- */
+    .train-path{ position:relative; }
+    .train-node{ position:relative; display:flex; gap:14px; padding-bottom:20px; cursor:pointer; }
+    .train-node:not(:last-child)::after{
+      content:""; position:absolute; left:27px; top:58px; bottom:-2px; width:3px; background:var(--line);
+    }
+    .train-node.complete:not(:last-child)::after{ background:var(--good); }
+    .train-node.locked{ cursor:not-allowed; }
+    .train-node .tn-dot{
+      flex:0 0 auto; width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:1.5rem; border:3px solid var(--line); background:var(--panel-2); transition:transform var(--t);
+    }
+    .train-node:not(.locked):hover .tn-dot{ transform:scale(1.06); }
+    .train-node.complete .tn-dot{ background:linear-gradient(135deg,var(--good),var(--accent-2)); border-color:var(--good); }
+    .train-node.current .tn-dot{
+      background:linear-gradient(135deg,var(--accent),var(--accent-2)); border-color:var(--accent);
+      box-shadow:0 0 0 5px var(--accent-soft); animation:trainPulse 1.8s infinite;
+    }
+    .train-node.locked .tn-dot{ opacity:.4; }
+    @keyframes trainPulse{ 0%,100%{ box-shadow:0 0 0 5px var(--accent-soft); } 50%{ box-shadow:0 0 0 9px transparent; } }
+    .train-node .tn-card{ flex:1; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; min-width:0; }
+    .train-node.locked .tn-card{ opacity:.55; }
+    .train-node.current .tn-card{ border-color:var(--accent-line); }
+    .train-node .tn-title{ font-weight:700; color:var(--heading); font-size:.95rem; }
+    .train-node .tn-sub{ font-size:.78rem; color:var(--muted); margin-top:3px; }
+    .train-node .tn-xp{ font-size:.72rem; color:var(--accent); font-weight:700; margin-top:6px; }
+    .tq-q{ margin-bottom:16px; }
+    .tq-question{ font-weight:700; color:var(--heading); font-size:.9rem; margin-bottom:8px; }
+    .tq-opt{ display:flex; align-items:center; gap:9px; padding:9px 11px; border:1px solid var(--line);
+      border-radius:10px; margin-bottom:7px; cursor:pointer; font-size:.86rem; transition:border-color var(--t), background var(--t); }
+    .tq-opt:hover{ border-color:var(--accent-line); }
+    .tq-opt input{ width:16px; height:16px; accent-color:var(--accent); flex:0 0 auto; }
+    .tq-opt.correct{ border-color:var(--good); background:rgba(61,220,151,.14); }
+    .tq-opt.wrong{ border-color:var(--bad); background:rgba(240,106,106,.14); }
+    .tq-opt.locked{ pointer-events:none; opacity:.85; }
+    #tqResult{ padding:12px; border-radius:var(--radius-sm); text-align:center; font-weight:700; }
+    #tqResult.pass{ background:rgba(61,220,151,.14); color:var(--good); }
+    #tqResult.fail{ background:rgba(240,106,106,.14); color:var(--bad); }
+
     /* Reactions + mentions */
     .rx-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
     .rx-chip{ display:inline-flex; align-items:center; gap:3px; font-size:.78rem; padding:3px 8px; border-radius:var(--radius-pill);
@@ -1003,6 +1050,7 @@
                 <div id="weekBadge" class="conn"><span class="label"></span></div>
                 <button id="btnAddStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">🏬 Add store</button>
                 <button id="btnEditStore" class="btn btn-ghost" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">✎ Edit store</button>
+                <button id="btnBatchAssign" class="btn btn-ghost hidden" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">👥 Batch assign</button>
                 <button id="btnExportCsv" class="btn btn-ghost hidden" type="button" style="padding:7px 13px;font-size:.8rem;min-height:auto;">⬇ Export</button>
               </div>
             </div>
@@ -1297,6 +1345,7 @@
           <button data-ops="hf" type="button">Outdoor Guidelines</button>
           <button data-ops="district" type="button">📋 District Checklist</button>
           <button data-ops="safety" type="button">🦺 Safety</button>
+          <button id="opsAuditBtn" data-ops="audit" type="button" class="hidden">📜 Audit Log</button>
           <button id="opsAirInc" type="button">🔗 Air Inc</button>
         </div>
         <div id="ops-hpa"><div id="guide-hpa"></div></div>
@@ -1323,6 +1372,43 @@
           </div>
           <div id="safetyViewer"></div>
         </div>
+        <div id="ops-audit" class="hidden">
+          <div class="toolbar">
+            <div class="search-box"><span class="ico">🔍</span>
+              <input id="auditSearch" type="search" placeholder="Search by person or action…" autocomplete="off" /></div>
+            <select id="auditDistrictFilter"></select>
+            <select id="auditRangeFilter">
+              <option value="1">Today</option>
+              <option value="7" selected>Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="0">All time</option>
+            </select>
+            <button id="auditExport" class="btn btn-ghost" type="button">⬇ Export</button>
+          </div>
+          <div class="count-row" id="auditCount"></div>
+          <div id="auditLogList"></div>
+        </div>
+      </section>
+
+      <section id="view-training">
+        <div class="head">
+          <h2>🎓 Merchandiser Training</h2>
+          <p>Level up from New Hire to Certified Merchandiser — real tasks, quick quizzes, real XP.</p>
+        </div>
+        <div class="panel panel-pad" style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div class="field-label" style="margin:0;">Your rank</div>
+              <div id="trainRank" style="font-size:1.15rem;font-weight:800;color:var(--heading);margin-top:2px;">🌱 New Hire</div>
+            </div>
+            <div style="text-align:right;">
+              <div id="trainXp" style="font-size:1.3rem;font-weight:800;color:var(--accent);">0 XP</div>
+              <div id="trainLevelCount" style="font-size:.76rem;color:var(--muted);">0 / 0 levels complete</div>
+            </div>
+          </div>
+          <div class="progress-track" style="margin-top:10px;"><div id="trainProgressBar" class="progress-fill" style="width:0%;"></div></div>
+        </div>
+        <div id="trainPath" class="train-path"></div>
       </section>
 
       <div class="footer">HF-HPA internal tool · Map · Product Info · Care &amp; ID · Store Ops</div>
@@ -1627,8 +1713,11 @@
   <div id="shoutEditor" class="modal-back"><div class="modal">
     <h3>🎉 Give a shout-out</h3>
     <div class="latin">Recognize a teammate for great work — it posts to the feed.</div>
-    <div class="fld"><label class="field-label" for="shoutWho">Teammate</label>
-      <select id="shoutWho"></select></div>
+    <div class="fld picker-wrap"><label class="field-label" for="shoutWhoInput">Teammate</label>
+      <input id="shoutWhoInput" type="text" autocomplete="off" placeholder="Search teammate by name, role, or district…" />
+      <div id="shoutWhoResults" class="gs-dropdown"></div>
+      <select id="shoutWho" class="hidden"></select>
+    </div>
     <div class="fld"><label class="field-label" for="shoutMsg">What did they do?</label>
       <textarea id="shoutMsg" placeholder="e.g. crushed the Aurora reset and helped me catch a pest issue"></textarea></div>
     <div class="modal-actions">
@@ -1640,8 +1729,11 @@
   <div id="assignEditor" class="modal-back"><div class="modal">
     <h3>Assign store</h3>
     <div class="latin" id="assignStoreLabel">Pick who's responsible for this store.</div>
-    <div class="fld"><label class="field-label" for="assignWho">Assign to</label>
-      <select id="assignWho"></select></div>
+    <div class="fld picker-wrap"><label class="field-label" for="assignWhoInput">Assign to</label>
+      <input id="assignWhoInput" type="text" autocomplete="off" placeholder="Search teammate by name, role, or district…" />
+      <div id="assignWhoResults" class="gs-dropdown"></div>
+      <select id="assignWho" class="hidden"></select>
+    </div>
     <div class="modal-actions">
       <button id="assignClear" class="btn btn-ghost" type="button">Unassign</button>
       <span style="display:flex;gap:8px;">
@@ -1651,11 +1743,61 @@
     </div>
   </div></div>
 
+  <div id="batchAssignEditor" class="modal-back"><div class="modal" style="max-width:520px;">
+    <h3>👥 Batch assign stores</h3>
+    <div class="latin">Pick multiple stores, then choose who's responsible for all of them.</div>
+    <div class="fld"><label class="field-label" for="baStoreSearch">Filter stores</label>
+      <input id="baStoreSearch" type="text" autocomplete="off" placeholder="Search by name, #, or territory…" /></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 2px 4px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;">
+        <input id="baSelectAll" type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);"> Select all visible
+      </label>
+      <span id="baCount" class="field-label" style="margin:0;">0 selected</span>
+    </div>
+    <div id="baStoreList" style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px;"></div>
+    <div class="fld picker-wrap"><label class="field-label" for="baWhoInput">Assign selected to</label>
+      <input id="baWhoInput" type="text" autocomplete="off" placeholder="Search teammate by name, role, or district…" />
+      <div id="baWhoResults" class="gs-dropdown"></div>
+      <select id="baWho" class="hidden"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="batchAssignEditor" type="button">Cancel</button>
+      <button id="baSave" class="btn btn-primary" type="button">Assign stores</button>
+    </div>
+  </div></div>
+
   <div id="mgrModal" class="modal-back"><div class="modal">
     <h3>🛡 Manager tools</h3>
     <div class="latin">Password reset requests from the team.</div>
     <div id="resetReqList" style="margin-top:14px;"></div>
     <div class="modal-actions"><button class="btn btn-ghost" data-close="mgrModal" type="button">Close</button></div>
+  </div></div>
+
+  <div id="trainLevelModal" class="modal-back"><div class="modal" style="max-width:540px;">
+    <div id="tlIcon" style="font-size:2.4rem;text-align:center;"></div>
+    <h3 id="tlTitle" style="text-align:center;"></h3>
+    <div id="tlSummary" style="margin:12px 0;font-size:.88rem;line-height:1.65;color:var(--text);"></div>
+    <div id="tlIrlWrap" class="hidden" style="margin:14px 0;padding:12px;border:1px dashed var(--accent-line);border-radius:var(--radius-sm);background:var(--accent-soft);">
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="tlIrlCheck" style="margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:0 0 auto;">
+        <span><strong>Real-world task:</strong> <span id="tlIrlText"></span></span>
+      </label>
+    </div>
+    <div id="tlQuizWrap"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="trainLevelModal" type="button">Close</button>
+      <button id="tlStartQuiz" class="btn btn-primary" type="button">Start Quiz</button>
+      <button id="tlComplete" class="btn btn-primary hidden" type="button">✅ Complete Level</button>
+    </div>
+  </div></div>
+
+  <div id="trainGradModal" class="modal-back"><div class="modal" style="max-width:440px;text-align:center;">
+    <div style="font-size:3rem;">🌟</div>
+    <h3>Certified Merchandiser!</h3>
+    <div class="latin" style="margin:10px 0;">You finished every level — nice work. Your manager just saw it hit the feed.</div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn btn-primary" data-close="trainGradModal" type="button">Nice!</button>
+    </div>
   </div></div>
 
   <div id="territoryEditor" class="modal-back"><div class="modal">
@@ -1693,6 +1835,9 @@
     </button>
     <button class="bn-item" data-view="ops" type="button">
       <span class="bn-ico">🛠</span><span class="bn-lab">Ops</span>
+    </button>
+    <button class="bn-item" data-view="training" type="button">
+      <span class="bn-ico">🎓</span><span class="bn-lab">Learn</span>
     </button>
   </nav>
 
@@ -1745,6 +1890,9 @@
 
     <!-- DIRECT MESSAGES -->
     <div id="hub-dms" class="hub-view hidden">
+      <div style="padding:8px 12px;border-bottom:1px solid var(--line-soft);">
+        <input id="dmSearch" type="search" placeholder="Search teammates by name, role, or district…" autocomplete="off" style="width:100%;" />
+      </div>
       <div id="dmList" class="hub-log">
         <div id="dmPeople"></div>
       </div>
@@ -2181,7 +2329,7 @@ document.addEventListener("keydown", e => { if(e.key==="Escape") $$(".modal-back
 /* ============================================================
    AUTH SHELL
    ============================================================ */
-const VIEWS = ["map","today","products","careid","ops"];
+const VIEWS = ["map","today","products","careid","ops","training"];
 const setVis = (el,on) => el && el.classList.toggle("hidden", !on);
 let curView = "map";
 
@@ -2197,6 +2345,14 @@ function applyAdminUI(){
   const pb=$("btnPostBanner"); if(pb) pb.classList.toggle("hidden", !me.isManager);
   const ex=$("btnExportCsv"); if(ex) ex.classList.toggle("hidden", !me.isManager);
   const wd=$("btnWeeklyDigest"); if(wd) wd.classList.toggle("hidden", !me.isManager);
+  const ba=$("btnBatchAssign"); if(ba) ba.classList.toggle("hidden", !me.isManager);
+  const aa=$("opsAuditBtn"); if(aa){
+    aa.classList.toggle("hidden", !me.isManager);
+    if(!me.isManager && opsActiveTab==="audit" && aa.parentElement){
+      const hpaBtn=aa.parentElement.querySelector('[data-ops="hpa"]');
+      if(hpaBtn) hpaBtn.click();
+    }
+  }
   if(typeof applyNextLevelAdminUI==="function") applyNextLevelAdminUI();
   if(typeof renderBanners==="function") renderBanners();   // refresh delete buttons by role
   if(typeof applyCareAdminBars==="function") applyCareAdminBars();   // item 13-care add buttons
@@ -2205,7 +2361,7 @@ function applyAdminUI(){
   if(typeof renderChecklistPanel==="function") renderChecklistPanel();
 }
 
-const VIEW_LABELS = { map:"🗺 Map", today:"📋 My Day", products:"📦 Product Info", careid:"🌿 Care & ID", ops:"🛠 Store Ops" };
+const VIEW_LABELS = { map:"🗺 Map", today:"📋 My Day", products:"📦 Product Info", careid:"🌿 Care & ID", ops:"🛠 Store Ops", training:"🎓 Training" };
 function showOnlyView(name){
   curView = name;
   VIEWS.forEach(v => setVis($("view-"+v), v===name));
@@ -2217,6 +2373,7 @@ function showOnlyView(name){
   try { sessionStorage.setItem("hub_view", name); } catch(e){}
   if(name==="map" && map) setTimeout(()=>map.invalidateSize(), 80);
   if(name==="today" && typeof renderToday==="function") renderToday();
+  if(name==="training" && typeof renderTrainingPath==="function") renderTrainingPath();
   window.scrollTo({ top:0, behavior:"smooth" });
 }
 function wireBottomNav(){
@@ -2327,6 +2484,7 @@ function enterApp(username, displayName){
   }
   applyAdminUI();
   showApp("map");
+  loadTraining();
   if(!hasSprite()) setTimeout(()=>openSpriteEditor(true), 250);
   else startPresence();
 }
@@ -3558,17 +3716,79 @@ function peopleRoster(){
   if(!people.find(p=>p.uid===me.uid)) people.push({ uid:me.uid, name:me.name, emoji:me.emoji, color:me.color, role:me.role||"", region:"", district:"" });
   return people.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
 }
+
+/* ---------- Searchable person picker (assign / shout-out / batch assign) -----
+   Groups a roster list by region/district so long team lists are easy to scan,
+   and wires a text input + dropdown to a hidden <select> so existing code that
+   reads the select's value keeps working unchanged. */
+function personGroupLabel(p){
+  const role=(p.role||"").toLowerCase();
+  if(GLOBAL_ROLES.includes(role)) return "Org-wide";
+  if(REGION_ROLES.includes(role)){ const r=parseTerrList(p.region); return "Region "+(r.length?r.join(", "):"—"); }
+  if(DISTRICT_ROLES.includes(role)){ const d=parseTerrList(p.district); return "District "+(d.length?d.join(", "):"—"); }
+  const d=personDistricts(p);
+  return d.length ? "District "+d.join(", ") : "Unassigned district";
+}
+function wirePersonPicker(inputId, selectId, resultsId, getPeople){
+  const input=$(inputId), select=$(selectId), results=$(resultsId);
+  if(!input||!select||!results) return null;
+  function draw(q){
+    const people=getPeople();
+    const query=(q||"").toLowerCase().trim();
+    const filtered=people.filter(p=>{
+      if(!query) return true;
+      return (p.name||"").toLowerCase().includes(query)
+        || (p.role||"").toLowerCase().includes(query)
+        || String(p.district||"").toLowerCase().includes(query)
+        || String(p.region||"").toLowerCase().includes(query);
+    });
+    if(!filtered.length){ results.innerHTML='<div class="gs-hint">No matches.</div>'; results.classList.add("show"); return; }
+    const groups={};
+    filtered.forEach(p=>{ const g=personGroupLabel(p); (groups[g]=groups[g]||[]).push(p); });
+    results.innerHTML = Object.keys(groups).sort().map(g=>{
+      const items=groups[g].sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(p=>
+        `<button type="button" class="gs-item" data-uid="${esc(p.uid)}">
+           <span class="gs-emoji">${esc(p.emoji||"🙂")}</span>
+           <span class="gs-main"><span class="gs-title">${esc(p.name||"User")}</span>
+           <span class="gs-sub">${esc((p.role||"").toUpperCase()||"TEAM")}</span></span></button>`).join("");
+      return `<div class="gs-group-label">${esc(g)}</div>${items}`;
+    }).join("");
+    results.classList.add("show");
+    $$('.gs-item', results).forEach(b=> b.addEventListener("mousedown", e=>{
+      e.preventDefault();
+      const uid=b.dataset.uid;
+      const p=getPeople().find(x=>x.uid===uid);
+      select.value=uid;
+      input.value=p?p.name:"";
+      results.classList.remove("show");
+    }));
+  }
+  input.addEventListener("focus", ()=> draw(""));
+  input.addEventListener("input", ()=> draw(input.value));
+  input.addEventListener("blur", ()=> setTimeout(()=> results.classList.remove("show"), 150));
+  return {
+    setSelected(uid){
+      const p=getPeople().find(x=>x.uid===uid);
+      select.value=uid||"";
+      input.value=p?p.name:"";
+      results.classList.remove("show");
+    },
+    clear(){ select.value=""; input.value=""; results.classList.remove("show"); }
+  };
+}
 function renderAssignRow(id){
   const row=$("spAssign"); if(!row) return;
   setVis(row, true);
   const a=assignments[id];
   const who=$("spAssignWho");
   if(a && a.uid){
-    who.innerHTML=`<span class="badge"><span class="chip" style="background:${esc(a.color||'#3da9fc')}">${esc(a.emoji||'🙂')}</span> ${esc(a.name||'User')}</span>`;
+    const since = a.ts ? ` <span style="color:var(--faint);font-size:.72rem;">since ${new Date(a.ts).toLocaleDateString()}</span>` : "";
+    who.innerHTML=`<span class="badge"><span class="chip" style="background:${esc(a.color||'#3da9fc')}">${esc(a.emoji||'🙂')}</span> ${esc(a.name||'User')}</span>${since}`;
   } else {
     who.textContent="Unassigned";
   }
 }
+let assignWhoPicker=null;
 function openAssignEditor(){
   if(!selected) return;
   if(!requireManager("assign stores")) return;
@@ -3576,7 +3796,7 @@ function openAssignEditor(){
   const sel=$("assignWho"); sel.innerHTML="";
   peopleRoster().forEach(p=>{ const o=document.createElement("option"); o.value=p.uid; o.textContent=`${p.emoji||'🙂'} ${p.name||'User'}`; sel.appendChild(o); });
   const cur=assignments[selected];
-  if(cur && cur.uid) sel.value=cur.uid;
+  if(assignWhoPicker) assignWhoPicker.setSelected(cur && cur.uid ? cur.uid : "");
   openModal("assignEditor");
 }
 function saveAssign(){
@@ -3584,10 +3804,10 @@ function saveAssign(){
   const sel=$("assignWho"); const uid=sel.value;
   const person=peopleRoster().find(p=>p.uid===uid);
   if(!person){ closeModal("assignEditor"); return; }
-  const rec={ uid:person.uid, name:person.name||"User", emoji:person.emoji||"🙂", color:person.color||"#3da9fc" };
+  const rec={ uid:person.uid, name:person.name||"User", emoji:person.emoji||"🙂", color:person.color||"#3da9fc", assignedBy:me.name, ts:Date.now() };
   assignments[selected]=rec;
   if(db) set(ref(db,"assignments/"+selected), rec).catch(console.error);
-  if(typeof notifyManagerChange==="function") notifyManagerChange(`assigned store #${selected} to ${rec.name}`);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`assigned store #${selected} to ${rec.name}`, stores[selected]&&stores[selected].territory);
   closeModal("assignEditor");
   renderAssignRow(selected);
   refreshMarker(selected);
@@ -3599,6 +3819,77 @@ function clearAssign(){
   closeModal("assignEditor");
   renderAssignRow(selected);
   refreshMarker(selected);
+}
+
+/* ----- Batch assign: multiple stores → one person in a single action ----- */
+let baWhoPicker=null;
+function batchScopedStoreIds(){
+  /* Managers can only batch-assign within their own region/district scope. */
+  const scope=myScopeDistricts();
+  const ids=Object.keys(stores);
+  if(scope===null) return ids;
+  return ids.filter(id=> scope.includes(String(stores[id].territory||"")));
+}
+function buildBatchStoreList(filter){
+  const wrap=$("baStoreList"); if(!wrap) return;
+  const q=(filter||"").toLowerCase().trim();
+  const ids=batchScopedStoreIds().sort((a,b)=>(stores[a].name||"").localeCompare(stores[b].name||""));
+  const rows=[];
+  ids.forEach(id=>{
+    const s=stores[id];
+    const text=("#"+id+" "+(s.name||"")+" "+(s.territory||"")).toLowerCase();
+    if(q && !text.includes(q)) return;
+    const a=assignments[id];
+    const cur = a && a.uid ? `${a.emoji||"🙂"} ${a.name||"User"}` : "Unassigned";
+    rows.push(`<label class="terr-store">
+      <input type="checkbox" data-baid="${esc(id)}">
+      <span class="nm">#${esc(id)} · ${esc(s.name||"")} <span style="color:var(--faint);">Terr. ${esc(s.territory||"—")}</span></span>
+      <span class="cur">${esc(cur)}</span>
+    </label>`);
+  });
+  wrap.innerHTML = rows.length ? rows.join("") : '<div class="hub-empty" style="padding:14px">No stores match.</div>';
+  $$('input[data-baid]', wrap).forEach(cb=> cb.addEventListener("change", updateBaCount));
+  updateBaCount();
+}
+function updateBaCount(){
+  const n=$$('#baStoreList input[data-baid]:checked').length;
+  const el=$("baCount"); if(el) el.textContent = n===1 ? "1 selected" : n+" selected";
+}
+function openBatchAssign(){
+  if(!requireManager("batch assign stores")) return;
+  $("baStoreSearch").value="";
+  $("baSelectAll").checked=false;
+  buildBatchStoreList("");
+  const sel=$("baWho"); sel.innerHTML="";
+  peopleRoster().forEach(p=>{ const o=document.createElement("option"); o.value=p.uid; o.textContent=`${p.emoji||"🙂"} ${p.name||"User"}`; sel.appendChild(o); });
+  if(baWhoPicker) baWhoPicker.clear();
+  openModal("batchAssignEditor");
+}
+function saveBatchAssign(){
+  const uid=$("baWho").value;
+  const person=peopleRoster().find(p=>p.uid===uid);
+  if(!person){ alert("Search for and pick a teammate to assign these stores to."); return; }
+  const ids=$$('#baStoreList input[data-baid]:checked').map(cb=>cb.dataset.baid);
+  if(!ids.length){ alert("Select at least one store."); return; }
+  const rec={ uid:person.uid, name:person.name||"User", emoji:person.emoji||"🙂", color:person.color||"#3da9fc", assignedBy:me.name, ts:Date.now() };
+  const updates={};
+  ids.forEach(id=>{ assignments[id]=rec; updates["assignments/"+id]=rec; });
+  if(db) update(ref(db), updates).catch(console.error);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`batch-assigned ${ids.length} store${ids.length>1?"s":""} to ${rec.name}`);
+  ids.forEach(id=> refreshMarker(id));
+  if(selected && ids.includes(selected)) renderAssignRow(selected);
+  closeModal("batchAssignEditor");
+  showToast(`Assigned ${ids.length} store${ids.length>1?"s":""} to ${esc(rec.name)}`, "👥");
+}
+function initBatchAssign(){
+  const btn=$("btnBatchAssign"); if(btn) btn.addEventListener("click", openBatchAssign);
+  const search=$("baStoreSearch"); if(search) search.addEventListener("input", e=> buildBatchStoreList(e.target.value));
+  const all=$("baSelectAll"); if(all) all.addEventListener("change", e=>{
+    $$('#baStoreList input[data-baid]').forEach(cb=> cb.checked=e.target.checked);
+    updateBaCount();
+  });
+  baWhoPicker = wirePersonPicker("baWhoInput","baWho","baWhoResults", peopleRoster);
+  const save=$("baSave"); if(save) save.addEventListener("click", saveBatchAssign);
 }
 
 /* ----- My Day (assigned stores, nearest first, photo per item) ----- */
@@ -4019,7 +4310,7 @@ function saveStore(){
   const territory = $("seTerritory") ? $("seTerritory").value.trim() : prevTerritory;
   stores[id] = { id, name:name||("#"+id), lat, lng, address, territory, checked, photos };
   if(db) update(ref(db,`stores/${id}`), { name:stores[id].name, lat, lng, address, territory }).catch(console.error);
-  if(typeof notifyManagerChange==="function") notifyManagerChange(`${original?"updated":"added"} store #${id} (${stores[id].name})`);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`${original?"updated":"added"} store #${id} (${stores[id].name})`, territory);
 
   closeModal("storeEditor");
   refreshMarker(id);
@@ -4811,7 +5102,7 @@ function applySproutAction(a){
         districtChecklists[dist]=districtChecklists[dist]||[];
         districtChecklists[dist].push({ id:nextDistItemId(), text:a.text||"", done:false });
         persistDistrict(dist);
-        notifyManagerChange(`added a task to the District ${dist} checklist (via Sprout)`);
+        notifyManagerChange(`added a task to the District ${dist} checklist (via Sprout)`, dist);
         if(curView==="ops") renderDistrictTab();
         break;
       }
@@ -5076,6 +5367,7 @@ function postFeed(text, kind, photo){
     }
   });
 }
+let shoutWhoPicker=null;
 function openShoutEditor(){
   if(feedFeelingOnly()){ alert("Your role can post a feeling to the feed, but not shout-outs."); return; }
   const sel=$("shoutWho"); sel.innerHTML="";
@@ -5087,6 +5379,7 @@ function openShoutEditor(){
       const o=document.createElement("option"); o.value=p.uid; o.textContent=`${p.emoji||"🙂"} ${p.name||"User"}`; sel.appendChild(o);
     });
   }
+  if(shoutWhoPicker) shoutWhoPicker.clear();
   $("shoutMsg").value="";
   openModal("shoutEditor");
 }
@@ -5202,17 +5495,34 @@ function sendChat(text){
 /* ----- DIRECT MESSAGES ----- */
 function renderDmPeople(){
   const wrap=$("dmPeople"); if(!wrap) return;
-  const peers=rosterPeople().filter(p=>p.uid!==me.uid);
-  if(!peers.length){ wrap.innerHTML='<div class="hub-empty">No other team members found in the roster.</div>'; return; }
-  wrap.innerHTML="";
-  peers.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(p=>{
-    const online = !!(hub.dmPeers||{})[p.uid];
-    const row=document.createElement("div"); row.className="dm-person";
-    row.innerHTML=`<div class="dot" style="background:${esc(p.color||'#3da9fc')}">${esc(p.emoji||'🙂')}</div>
-      <div class="nm">${esc(p.name||'User')}${p.role?` <span style="color:var(--faint);font-size:.72rem;">${esc(p.role.toUpperCase())}</span>`:''}</div>
-      <div class="st">${online?(STATUS_LABELS[p.status]||'🟢 online'):''}</div>`;
-    row.addEventListener("click",()=>openDmTo(p));
-    wrap.appendChild(row);
+  const q=($("dmSearch")?.value||"").toLowerCase().trim();
+  let peers=rosterPeople().filter(p=>p.uid!==me.uid);
+  if(q){
+    peers=peers.filter(p=>
+      (p.name||"").toLowerCase().includes(q)
+      || (p.role||"").toLowerCase().includes(q)
+      || String(p.district||"").toLowerCase().includes(q)
+      || String(p.region||"").toLowerCase().includes(q));
+  }
+  if(!peers.length){ wrap.innerHTML='<div class="hub-empty">No teammates match.</div>'; return; }
+  const groups={};
+  peers.forEach(p=>{ const g=personGroupLabel(p); (groups[g]=groups[g]||[]).push(p); });
+  wrap.innerHTML = Object.keys(groups).sort().map(g=>{
+    const rows=groups[g].sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(p=>{
+      const online = !!(hub.dmPeers||{})[p.uid];
+      return `<div class="dm-person" data-uid="${esc(p.uid)}">
+        <div class="dot" style="background:${esc(p.color||'#3da9fc')}">${esc(p.emoji||'🙂')}</div>
+        <div class="nm">${esc(p.name||'User')}${p.role?` <span style="color:var(--faint);font-size:.72rem;">${esc(p.role.toUpperCase())}</span>`:''}</div>
+        <div class="st">${online?(STATUS_LABELS[p.status]||'🟢 online'):''}</div>
+      </div>`;
+    }).join("");
+    return `<div class="gs-group-label" style="padding-left:2px;">${esc(g)}</div>${rows}`;
+  }).join("");
+  $$('.dm-person', wrap).forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const p=peers.find(x=>x.uid===row.dataset.uid);
+      if(p) openDmTo(p);
+    });
   });
 }
 /* Open a DM to a roster person (ensures we have their basics even if offline). */
@@ -5353,6 +5663,7 @@ function initHub(){
   const dmSend=()=>{ const v=$("dmInput").value; if(v.trim()){ sendDm(v); $("dmInput").value=""; } };
   $("dmSend").addEventListener("click", dmSend);
   $("dmInput").addEventListener("keydown",e=>{ if(e.key==="Enter") dmSend(); });
+  const dmSearchEl=$("dmSearch"); if(dmSearchEl) dmSearchEl.addEventListener("input", renderDmPeople);
   // Sprout
   $("sproutSend").addEventListener("click",()=>sproutAsk($("sproutInput").value));
   $("sproutInput").addEventListener("keydown",e=>{ if(e.key==="Enter") sproutAsk($("sproutInput").value); });
@@ -5403,26 +5714,93 @@ function showToast(text, icon){
 
 /* A manager made a change anywhere → record it + (for others) show a toast.
    Item 4's true phone push is delivered separately via the service worker /
-   Cloud Function (see Batch 5); this is the in-app half that always works. */
+   Cloud Function (see Batch 5); this is the in-app half that always works.
+   The same "activity" trail also powers the manager-only Audit Log (Store Ops). */
 let activitySeenTs = 0, activityPrimed = false;
-function notifyManagerChange(text){
+let auditLog = [];
+let opsActiveTab = "hpa";
+function notifyManagerChange(text, district){
   if(!db) return;
   const node=push(ref(db,"activity"));
-  set(node, { uid:me.uid, name:me.name, text:text||"made a change", ts:Date.now() }).catch(()=>{});
+  const rec={ uid:me.uid, name:me.name, text:text||"made a change", ts:Date.now() };
+  if(district) rec.district=String(district);
+  set(node, rec).catch(()=>{});
 }
 function watchActivity(){
   if(!db) return;
   onValue(ref(db,"activity"), snap=>{
     const val=snap.val()||{};
     const arr=Object.values(val).filter(Boolean).sort((a,b)=>(a.ts||0)-(b.ts||0));
-    if(!activityPrimed){ activityPrimed=true; activitySeenTs = arr.length?arr[arr.length-1].ts:Date.now(); return; }
+    auditLog=arr;
+    if(!activityPrimed){
+      activityPrimed=true; activitySeenTs = arr.length?arr[arr.length-1].ts:Date.now();
+      if(curView==="ops" && opsActiveTab==="audit") renderAuditLog();
+      return;
+    }
     arr.forEach(a=>{
       if(a.ts>activitySeenTs && a.uid!==me.uid){
         showToast(`<b>${esc(a.name||"A manager")}</b> ${esc(a.text||"made a change")}`, "🛠");
       }
     });
     if(arr.length) activitySeenTs=Math.max(activitySeenTs, arr[arr.length-1].ts);
+    if(curView==="ops" && opsActiveTab==="audit") renderAuditLog();
   }, err=>console.error("activity read:",err));
+}
+
+/* ----- Audit log (managers only) — a searchable, filterable view over the
+   existing "activity" trail above, scoped by the viewer's region/district. ----- */
+function auditViewableEntries(){
+  const scope=myScopeDistricts(); // null = global, sees everything
+  if(scope===null) return auditLog;
+  /* Entries with no district tag are org-wide actions (guideline edits, etc.)
+     and stay visible to every manager; district-tagged entries are scoped. */
+  return auditLog.filter(a=> !a.district || scope.includes(String(a.district)));
+}
+function populateAuditDistrictFilter(){
+  const sel=$("auditDistrictFilter"); if(!sel) return;
+  const dists=viewableDistricts();
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All districts</option>'+dists.map(d=>`<option value="${esc(d)}">District ${esc(d)}</option>`).join("");
+  if(dists.includes(cur)) sel.value=cur;
+}
+function filteredAuditEntries(){
+  const q=($("auditSearch")?.value||"").toLowerCase().trim();
+  const distFilter=$("auditDistrictFilter")?.value||"";
+  const days=parseInt($("auditRangeFilter")?.value||"7",10);
+  const cutoff = days>0 ? Date.now()-days*86400000 : 0;
+  let entries=auditViewableEntries().filter(a=>(a.ts||0)>=cutoff);
+  if(distFilter) entries=entries.filter(a=> String(a.district||"")===distFilter);
+  if(q) entries=entries.filter(a=> (a.name||"").toLowerCase().includes(q) || (a.text||"").toLowerCase().includes(q));
+  return entries.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+function renderAuditLog(){
+  const list=$("auditLogList"); if(!list) return;
+  const entries=filteredAuditEntries();
+  const countEl=$("auditCount");
+  if(countEl) countEl.innerHTML = `<strong>${entries.length}</strong> change${entries.length===1?"":"s"}`;
+  if(!entries.length){ list.innerHTML='<div class="hub-empty" style="padding:14px">No matching activity.</div>'; return; }
+  list.innerHTML = entries.slice(0,300).map(a=>{
+    const when=a.ts? new Date(a.ts).toLocaleString():"";
+    const distTag=a.district? ` <span class="pill" style="position:static;display:inline-block;">Dist. ${esc(a.district)}</span>`:"";
+    return `<div class="panel panel-pad" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div><strong>${esc(a.name||"Someone")}</strong> ${esc(a.text||"made a change")}${distTag}</div>
+        <div style="color:var(--faint);font-size:.76rem;white-space:nowrap;">${esc(when)}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+function exportAuditLog(){
+  const entries=filteredAuditEntries();
+  const rows=[["When","Who","Action","District"]];
+  entries.forEach(a=> rows.push([a.ts?new Date(a.ts).toISOString():"", a.name||"", a.text||"", a.district||""]));
+  downloadCsv("audit_log.csv", rows);
+}
+function initAuditLog(){
+  const s=$("auditSearch"); if(s) s.addEventListener("input", renderAuditLog);
+  const df=$("auditDistrictFilter"); if(df) df.addEventListener("change", renderAuditLog);
+  const rf=$("auditRangeFilter"); if(rf) rf.addEventListener("change", renderAuditLog);
+  const ex=$("auditExport"); if(ex) ex.addEventListener("click", exportAuditLog);
 }
 
 /* ----- Team banners (items 5 & 6) ----- */
@@ -5649,7 +6027,7 @@ function saveDistrictItem(){
     districtChecklists[dist].push({ id:nextDistItemId(), text:txt, done:false });
   }
   persistDistrict(dist);
-  notifyManagerChange(`updated the District ${dist} checklist`);
+  notifyManagerChange(`updated the District ${dist} checklist`, dist);
   closeModal("districtItemEditor");
   renderDistrictTab();
 }
@@ -5657,7 +6035,7 @@ function deleteDistrictItem(dist, itemId){
   if(!canEditDistrict(dist)) return;
   districtChecklists[dist]=(districtChecklists[dist]||[]).filter(i=>i.id!==itemId);
   persistDistrict(dist);
-  notifyManagerChange(`updated the District ${dist} checklist`);
+  notifyManagerChange(`updated the District ${dist} checklist`, dist);
   renderDistrictTab();
 }
 function initDistrictChecklist(){
@@ -5893,7 +6271,7 @@ function saveDamage(){
   if(_damagePhoto) rec.photo=_damagePhoto;
   const node=push(ref(db,"damageClaims/"+selected));
   set(node, rec).catch(err=>{ console.error(err); alert("Couldn't submit the claim"+(_damagePhoto?" — the photo may be too large.":".")); });
-  if(typeof notifyManagerChange==="function") notifyManagerChange(`logged a damage claim at store #${selected} (${reason}${qty>1?" ×"+qty:""})`);
+  if(typeof notifyManagerChange==="function") notifyManagerChange(`logged a damage claim at store #${selected} (${reason}${qty>1?" ×"+qty:""})`, stores[selected]&&stores[selected].territory);
   closeModal("damageEditor");
   showToast("Damage claim submitted","📋");
 }
@@ -6191,10 +6569,14 @@ function handoffStore(){
   const target=peers[idx];
   if(db){
     /* reassign + record the handoff */
-    set(ref(db,"assignments/"+selected), { uid:target.uid, name:target.name, emoji:target.emoji, color:target.color }).catch(console.error);
+    const rec={ uid:target.uid, name:target.name, emoji:target.emoji, color:target.color, assignedBy:me.name, ts:Date.now() };
+    assignments[selected]=rec;
+    set(ref(db,"assignments/"+selected), rec).catch(console.error);
     const node=push(ref(db,"handoffs/"+target.uid));
     set(node,{ storeId:selected, fromName:me.name, note, ts:Date.now() }).catch(()=>{});
-    notifyManagerChange(`handed off store #${selected} to ${target.name}`);
+    notifyManagerChange(`handed off store #${selected} to ${target.name}`, stores[selected]&&stores[selected].territory);
+    renderAssignRow(selected);
+    refreshMarker(selected);
   }
   showToast(`Handed off #${selected} to ${esc(target.name)}`, "🤝");
 }
@@ -6293,11 +6675,11 @@ function applyLang(l){
   const t=(en,es)=> l==="es"?es:en;
   const map_={
     "navMap":["Map","Mapa"],"navToday":["My Day","Mi Día"],"navProducts":["Products","Productos"],
-    "navCare":["Care","Cuidado"],"navOps":["Ops","Ops"]
+    "navCare":["Care","Cuidado"],"navOps":["Ops","Ops"],"navTraining":["Learn","Aprender"]
   };
   const labels=document.querySelectorAll('.bn-item .bn-lab');
-  const order=["Map","My Day","Products","Care","Ops"];
-  const es=["Mapa","Mi Día","Productos","Cuidado","Ops"];
+  const order=["Map","My Day","Products","Care","Ops","Learn"];
+  const es=["Mapa","Mi Día","Productos","Cuidado","Ops","Aprender"];
   labels.forEach((el,i)=>{ el.textContent = l==="es"?es[i]:order[i]; });
   $$('[data-lang-set]').forEach(b=> b.classList.toggle("btn-primary", b.dataset.langSet===l));
 }
@@ -6398,7 +6780,12 @@ function applyFeedRestrictions(){
 function init(){
   wireTabs("products",{skus:"products-skus",orders:"products-orders"},"#view-products");
   wireTabs("careid",{house:"careid-house",perennial:"careid-perennial",pest:"careid-pest"},"#view-careid");
-  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district",safety:"ops-safety"},"#view-ops",(key)=>{ if(key==="district") renderDistrictTab(); if(key==="safety") renderSafety(); });
+  wireTabs("ops",{hpa:"ops-hpa",hf:"ops-hf",district:"ops-district",safety:"ops-safety",audit:"ops-audit"},"#view-ops",(key)=>{
+    opsActiveTab=key;
+    if(key==="district") renderDistrictTab();
+    if(key==="safety") renderSafety();
+    if(key==="audit"){ populateAuditDistrictFilter(); renderAuditLog(); }
+  });
   wireBottomNav();   // redesign: one-tap bottom navigation
   initDisplaySettings();   // theme + text size
   initGlobalSearch();      // search stores/SKUs/plants/pests
@@ -6427,6 +6814,11 @@ function init(){
   initSproutVoice();       // item 20 voice-to-text
   initIdentify();          // item 21 plant identifier
   initPullToRefresh();     // pull down to refresh
+  initBatchAssign();       // batch-assign stores to one person
+  initAuditLog();          // manager-only audit log (Store Ops)
+  initTraining();          // gamified merchandiser training tab
+  assignWhoPicker = wirePersonPicker("assignWhoInput","assignWho","assignWhoResults", peopleRoster);
+  shoutWhoPicker  = wirePersonPicker("shoutWhoInput","shoutWho","shoutWhoResults", ()=> rosterPeople().filter(p=>p.uid!==me.uid));
 
   /* Load the live roster from users.csv first so roles, regions and districts
      are known before we restore a session or validate a login. If the fetch
@@ -6562,6 +6954,7 @@ function renderTourStep(){
 function endTour(){
   $("tourOverlay").classList.add("hidden");
   try{ localStorage.setItem("hub_tour_done","1"); }catch(e){}
+  maybeStartSproutOnboarding();
 }
 function initTour(){
   const next=$("tourNext"), skip=$("tourSkip");
@@ -6572,6 +6965,388 @@ function maybeStartTour(){
   let done=false;
   try{ done=localStorage.getItem("hub_tour_done")==="1"; }catch(e){}
   if(!done) setTimeout(startTour, 600);
+}
+
+/* ============================================================
+   SPROUT BOT GUIDED ONBOARDING (first sign-in only)
+   Runs once per device/user right after the quick card tour closes.
+   Walks through every tab in the hub's own voice, then hands off
+   to the Training tab.
+   ============================================================ */
+const SPROUT_ONBOARDING_SCRIPT=[
+  "Hey! 👋 I'm <b>Sprout Bot</b> — I live in this chat bubble and I'll be quick. Let me show you around before you head out to your first store.",
+  "🗺 <b>Map</b> — your home base. Tap any pin to open that store's checklist, attach proof photos, log issues or damage claims, and see who's assigned there.",
+  "📋 <b>My Day</b> — your assigned stores, nearest-first. There's a route optimizer and a team leaderboard so you can see how the week's going.",
+  "📦 <b>Product Info</b> — SKU lookups and order breakdowns, straight from the sheets your team already uses.",
+  "🌿 <b>Care & ID</b> — plant and pest identification with care details. Snap a photo anywhere in the hub and I'll take a guess at what it is.",
+  "🛠 <b>Store Ops</b> — Indoor/Outdoor guidelines, the district checklist, and the safety manual all live here.",
+  "💬 This chat bubble is the <b>Hub</b> — Feed for team updates and shout-outs, Team chat by district, DMs, and me, right here in Ask.",
+  "🎓 Last stop — the <b>Training</b> tab in the bottom bar. It's a level-up style course built from the actual Merchandiser Training Manual: short lessons, quick quizzes, and a few real-world tasks to do with your supervisor. Finish it all and you're a Certified Merchandiser. Ready?"
+];
+function sproutOnboardingDone(){
+  let done=false;
+  try{ done=localStorage.getItem("hub_sprout_onboarding_done")==="1"; }catch(e){}
+  return done;
+}
+function markSproutOnboardingDone(){
+  try{ localStorage.setItem("hub_sprout_onboarding_done","1"); }catch(e){}
+}
+function maybeStartSproutOnboarding(){
+  if(sproutOnboardingDone()) return;
+  setTimeout(runSproutOnboarding, 500);
+}
+function runSproutOnboarding(){
+  if(sproutOnboardingDone()) return;
+  toggleHub(true);
+  switchHub("ask");
+  const log=$("sproutLog"); if(log) log.innerHTML="";
+  $("sproutChips").innerHTML="";
+  let i=0;
+  function next(){
+    if(i>=SPROUT_ONBOARDING_SCRIPT.length){
+      markSproutOnboardingDone();
+      const box=$("sproutChips");
+      if(box){
+        box.innerHTML="";
+        const b=document.createElement("button"); b.type="button"; b.textContent="🎓 Start Training";
+        b.addEventListener("click",()=>{ toggleHub(false); showOnlyView("training"); });
+        box.appendChild(b);
+        const b2=document.createElement("button"); b2.type="button"; b2.textContent="I'll explore on my own";
+        b2.addEventListener("click",()=>{ box.innerHTML=""; });
+        box.appendChild(b2);
+      }
+      return;
+    }
+    const typing=botTyping();
+    setTimeout(()=>{
+      typing.remove();
+      botPush(SPROUT_ONBOARDING_SCRIPT[i],"bot");
+      i++;
+      setTimeout(next, 1100);
+    }, 500);
+  }
+  next();
+}
+
+/* ============================================================
+   TRAINING TAB — gamified merchandiser onboarding course
+   Built from the Merchandiser Training Manual. Levels unlock in
+   order; each has a short recap, an optional real-world task the
+   trainee confirms with their supervisor, and a short quiz.
+   Progress is stored per-user in Firebase under training/{uid}.
+   ============================================================ */
+const TRAINING_LEVELS=[
+  { id:"welcome", icon:"👋", title:"Welcome Aboard", xp:50,
+    blurb:"UKG basics — clocking in, breaks, and your schedule.",
+    summary:[
+      "You're part of the Hampshire Farms family — merchandisers keep our plants shelf-ready and our Home Depot partners happy.",
+      "Clock in and out every shift using <b>UKG Ready Mobile</b> (company shortname <b>6183543</b>).",
+      "Salaried teammates don't need to clock out for lunch, but everyone gets a 20-minute break per 5 hours worked, plus a 30-minute lunch.",
+      "Check your schedule and request time off right inside UKG, under My Info → Time."
+    ],
+    irlTask:"Install UKG Ready Mobile on your phone and successfully clock in for a shift.",
+    quiz:[
+      { q:"What's the UKG company shortname you enter on first login?", options:["HFHPA2026","6183543","HampshireFarms1","1183543"], correct:1 },
+      { q:"In addition to your 20-minute break, how long is your lunch break?", options:["10 minutes","15 minutes","30 minutes","60 minutes"], correct:2 },
+      { q:"Where do you request time off?", options:["Call your supervisor","UKG, under My Info → Time","Text the District Manager","Email HR only"], correct:1 },
+      { q:"True or false: salaried employees must clock out for lunch.", options:["True","False"], correct:1 }
+    ]
+  },
+  { id:"picas", icon:"📱", title:"Picas & Inventory", xp:60,
+    blurb:"Store visits, markdowns, and keeping inventory honest.",
+    summary:[
+      "<b>Picas</b> is how we record store visits and markdowns — our digital paper trail.",
+      "Markdowns must be entered by <b>Thursday evening</b>, every week, for every department.",
+      "Keep markdowns between <b>50–125 per month</b>, and no more than <b>10 of one SKU per visit</b> without your supervisor's approval.",
+      "Anything marked down comes off the floor and into the compactor — no exceptions."
+    ],
+    irlTask:"Complete your first Picas store visit and markdown entry with your supervisor watching.",
+    quiz:[
+      { q:"By when do markdowns need to be entered each week?", options:["Monday morning","Thursday evening","Saturday","End of the month"], correct:1 },
+      { q:"What's the max SKU markdown per visit without approval?", options:["5","10","25","No limit"], correct:1 },
+      { q:"Which of these is NOT a markdown trigger?", options:["Pests on the plant","A fresh new delivery","A cracked pot","More than 50% dead/yellow leaves"], correct:1 }
+    ]
+  },
+  { id:"safety", icon:"🦺", title:"Safety First", xp:60,
+    blurb:"Lifting, racks, and wet floors — the essentials.",
+    summary:[
+      "Lift with your legs, not your back — don't bend over from the waist.",
+      "<b>Pull</b> racks, don't push them — you can't see what's ahead of a rack you're pushing.",
+      "Chock the wheels when staging racks so they can't roll away.",
+      "Wet floor signs go up <b>before</b> you start watering, not after."
+    ],
+    irlTask:"Review the Safety Manual with your supervisor and get their sign-off.",
+    quiz:[
+      { q:"When moving a rack, you should:", options:["Push it", "Pull it", "Spin it around corners", "Leave it in the aisle"], correct:1 },
+      { q:"Before watering, you should:", options:["Water first, ask questions later","Put up wet floor signs first","Take down all wet floor signs","Nothing special"], correct:1 },
+      { q:"When lifting something heavy:", options:["Bend at the waist","Lift with your legs","Hold your breath","Ask a customer to help"], correct:1 }
+    ]
+  },
+  { id:"racks", icon:"🛒", title:"CC Racks & Rentals", xp:40,
+    blurb:"Why empty racks can't just sit around.",
+    summary:[
+      "CC racks aren't ours — Hampshire Farms pays a <b>daily rental fee</b>, so empty racks need to go back to the farm ASAP.",
+      "Clear racks of debris, third-party banners, and trays that aren't recycled by the farm before pickup.",
+      "If another vendor is using an HF rack, there's an app to scan it and see who it's assigned to."
+    ],
+    irlTask:"Locate your store's CC rack pickup area with your supervisor.",
+    quiz:[
+      { q:"Why do empty CC racks need to go back quickly?", options:["They're recyclable","Hampshire Farms pays a daily rental fee","They attract pests","No real reason"], correct:1 },
+      { q:"Before a rack is picked up, you should remove:", options:["Nothing","Debris and third-party banners","The wheels","The shelves"], correct:1 }
+    ]
+  },
+  { id:"outdoor", icon:"🌸", title:"Outdoor Merchandising", xp:70,
+    blurb:"Apron, IGC, and Corral — brands, tables, and signage.",
+    summary:[
+      "Apron Table 1 is Proven Winner, Table 2 is Vigoro, Table 3 is Opening Price Point — all striped short to tall.",
+      "The IGC <b>AD Section</b> is the first 8 feet closest to the registers — no hanging basket fixture there.",
+      "\"Striping\" mirrors product side to side on a table; \"blocking\" splits sun and shade varieties by row.",
+      "Every 8-foot table section and every endcap gets a 5x8 sign in the center."
+    ],
+    irlTask:"Walk your Apron and IGC with your supervisor and point out Tables 1, 2, 3, and the AD Section.",
+    quiz:[
+      { q:"Which brand is on Apron Table 1?", options:["Vigoro","Proven Winner","Local Favorite","Rio"], correct:1 },
+      { q:"What does \"striping\" mean?", options:["Painting stripes on tables","Mirroring product on both sides of a table","Splitting sun/shade by row","Rotating old stock out"], correct:1 },
+      { q:"Where is the AD Section?", options:["Farthest from the registers","First 8 feet closest to the registers","In the parking lot","On pallets only"], correct:1 },
+      { q:"An \"Apron\" is:", options:["The area inside the garden gates","The area in front of the store, outside the garden gates","A type of sign","A rack"], correct:1 }
+    ]
+  },
+  { id:"hpa", icon:"🌿", title:"Houseplant (HPA) Merchandising", xp:70,
+    blurb:"Pods, pricing tiers, and watering indoors.",
+    summary:[
+      "The <b>PW Pod</b> sits closest to the Main Entrance — premium varieties, striped short to tall.",
+      "Typical pod order from the entrance: PW → Blooming/Orchid → Vigoro → Home Decor/Breathe Easy, with Hanging Baskets centered in back.",
+      "Tags always face the customer, and the bottom of every pod gets restocked two rows deep.",
+      "Water indoor product in the morning or evening — never 10am–4pm during peak season."
+    ],
+    irlTask:"Restock and straighten one HPA pod top to bottom with your supervisor.",
+    quiz:[
+      { q:"Which pod is closest to the Main Entrance?", options:["Vigoro","Orchid","PW","Home Decor"], correct:2 },
+      { q:"How deep should the bottom of a pod be stocked?", options:["One row","Two rows","Not at all","Five rows"], correct:1 },
+      { q:"Best time to water houseplants?", options:["Midday","Morning or evening","Never","Only Fridays"], correct:1 }
+    ]
+  },
+  { id:"pests", icon:"🐛", title:"Pest Patrol", xp:60,
+    blurb:"Spot the signs before they spread.",
+    summary:[
+      "<b>Aphids</b> hide on leaf undersides — look for stickiness and curling leaves.",
+      "<b>Mealybugs</b> leave cotton-like tufts where leaves meet the stem.",
+      "<b>Scale</b> shows up as tiny shell-like bumps, often with sticky sap or black fungus nearby.",
+      "<b>Spider mites</b> give leaves a faded, sunburned look with fine webbing.",
+      "See a pest? Photo it, count how many plants are affected, and tell your supervisor immediately — don't try to treat it yourself."
+    ],
+    irlTask:"Do a pest inspection walk of one pod or table with your supervisor.",
+    quiz:[
+      { q:"Cotton-like tufts near the stem are a sign of:", options:["Aphids","Mealybugs","Scale","Rodents"], correct:1 },
+      { q:"A faded, sunburned look with webbing points to:", options:["Spider mites","Scale","Aphids","Rodents"], correct:0 },
+      { q:"If you spot a pest, you should:", options:["Spray it immediately yourself","Ignore it","Photo it, count affected plants, tell your supervisor","Toss the whole rack without telling anyone"], correct:2 },
+      { q:"Tiny shell-like bumps on stems are:", options:["Scale","Mealybugs","Aphids","Mites"], correct:0 }
+    ]
+  },
+  { id:"expectations", icon:"📋", title:"Daily Recaps & Expectations", xp:60,
+    blurb:"Start times, dress code, and what to send your supervisor.",
+    summary:[
+      "Mandatory start time is <b>8:00 AM</b> — weekends and a handful of major holidays are mandatory work days.",
+      "Send your supervisor a daily recap before clocking out: rack counts, watering status, markdowns, notes, and photos.",
+      "Photos are taken <b>after sweeping but before watering</b> — no carts, garbage, or wet floor signs in frame.",
+      "Dress code: Hampshire shirt, full-length pants, closed-toe shoes, work gloves."
+    ],
+    irlTask:"Send your supervisor your first complete daily recap with photos.",
+    quiz:[
+      { q:"When should you take your merchandising photos?", options:["Before sweeping","After sweeping but before watering","After watering","Whenever's convenient"], correct:1 },
+      { q:"What's the mandatory start time?", options:["7:00 AM","8:00 AM","9:00 AM","It's flexible"], correct:1 },
+      { q:"Which of these belongs in your daily recap?", options:["Your lunch order","Markdowns and rack counts","Tomorrow's weather","Nothing — it's optional"], correct:1 },
+      { q:"Closed-toe shoes are:", options:["Optional","Required","Only for winter","Only in the HPA"], correct:1 }
+    ]
+  },
+  { id:"grad", icon:"🌟", title:"Certification", xp:100,
+    blurb:"Sign off with your supervisor and claim your badge.",
+    summary:[
+      "You've made it through every level — nice work.",
+      "Last step is a real one: sit down with your supervisor, review the printed Merchandiser Expectations agreement, and both sign it.",
+      "Once that's done, check the box below and claim your <b>Certified Merchandiser</b> badge."
+    ],
+    irlTask:"Sign the Merchandiser Expectations agreement with your supervisor.",
+    quiz:null
+  }
+];
+
+let training={ xp:0, completed:{} };
+function trainingTotalLevels(){ return TRAINING_LEVELS.length; }
+function trainingDoneCount(){ return Object.keys(training.completed).length; }
+function trainingRankLabel(){
+  const n=trainingDoneCount(), total=trainingTotalLevels();
+  if(n>=total) return "🌟 Certified Merchandiser";
+  if(n===0) return "🌱 New Hire";
+  if(n<total/2) return "🧑‍🌾 Trainee";
+  return "🪴 Rising Merchandiser";
+}
+function levelState(idx){
+  const lvl=TRAINING_LEVELS[idx];
+  if(training.completed[lvl.id]) return "complete";
+  if(idx===0) return "current";
+  const prev=TRAINING_LEVELS[idx-1];
+  return training.completed[prev.id] ? "current" : "locked";
+}
+function loadTraining(){
+  if(!db || !me.uid) return;
+  onValue(ref(db,"training/"+me.uid), snap=>{
+    const v=snap.val()||{};
+    training.xp=v.xp||0;
+    training.completed=v.completed||{};
+    if(curView==="training") renderTrainingPath();
+  }, err=>console.error("training read:",err));
+}
+function persistTraining(){
+  if(!db || !me.uid) return;
+  update(ref(db,"training/"+me.uid), { xp:training.xp, completed:training.completed }).catch(console.error);
+}
+function renderTrainingPath(){
+  const wrap=$("trainPath"); if(!wrap) return;
+  const total=trainingTotalLevels(), done=trainingDoneCount();
+  const xpEl=$("trainXp"); if(xpEl) xpEl.textContent=training.xp+" XP";
+  const rankEl=$("trainRank"); if(rankEl) rankEl.textContent=trainingRankLabel();
+  const cntEl=$("trainLevelCount"); if(cntEl) cntEl.textContent=done+" / "+total+" levels complete";
+  const bar=$("trainProgressBar"); if(bar) bar.style.width=Math.round(done/total*100)+"%";
+  wrap.innerHTML=TRAINING_LEVELS.map((lvl,i)=>{
+    const state=levelState(i);
+    const dot=state==="complete"?"✅":state==="locked"?"🔒":lvl.icon;
+    return `<div class="train-node ${state}" data-idx="${i}">
+      <div class="tn-dot">${dot}</div>
+      <div class="tn-card">
+        <div class="tn-title">${esc(lvl.title)}</div>
+        <div class="tn-sub">${esc(lvl.blurb)}</div>
+        <div class="tn-xp">+${lvl.xp} XP${lvl.irlTask?" · real-world task":""}${state==="complete"?" · Complete! ✅":""}</div>
+      </div>
+    </div>`;
+  }).join("");
+  $$('.train-node', wrap).forEach(node=>{
+    if(node.classList.contains("locked")) return;
+    node.addEventListener("click",()=> openTrainingLevel(parseInt(node.dataset.idx,10)));
+  });
+}
+let tlIdx=null;
+function openTrainingLevel(idx){
+  const lvl=TRAINING_LEVELS[idx]; if(!lvl) return;
+  tlIdx=idx;
+  $("tlIcon").textContent=lvl.icon;
+  $("tlTitle").textContent=lvl.title;
+  $("tlSummary").innerHTML="<ul style='margin:0 0 0 18px;padding:0;display:flex;flex-direction:column;gap:8px;'>"+lvl.summary.map(s=>`<li>${s}</li>`).join("")+"</ul>";
+  if(lvl.irlTask){
+    setVis($("tlIrlWrap"), true);
+    $("tlIrlText").innerHTML=lvl.irlTask;
+    const done=!!(training.completed[lvl.id]);
+    $("tlIrlCheck").checked=done;
+    $("tlIrlCheck").disabled=done;
+  } else setVis($("tlIrlWrap"), false);
+  $("tlQuizWrap").innerHTML="";
+  const already=!!training.completed[lvl.id];
+  const startBtn=$("tlStartQuiz"), doneBtn=$("tlComplete");
+  setVis(doneBtn, false);
+  if(lvl.quiz){
+    setVis(startBtn, true);
+    startBtn.textContent=already?"Retake Quiz":"Start Quiz";
+  } else {
+    // no quiz (final level) — just needs the IRL checkbox
+    setVis(startBtn, false);
+    setVis(doneBtn, !already);
+  }
+  openModal("trainLevelModal");
+}
+function renderQuiz(lvl){
+  const wrap=$("tlQuizWrap");
+  wrap.innerHTML=lvl.quiz.map((q,qi)=>`
+    <div class="tq-q" data-qi="${qi}">
+      <div class="tq-question">${qi+1}. ${esc(q.q)}</div>
+      <div class="tq-opts">
+        ${q.options.map((opt,oi)=>`<label class="tq-opt" data-qi="${qi}" data-oi="${oi}">
+          <input type="radio" name="tq${qi}" value="${oi}"> <span>${esc(opt)}</span>
+        </label>`).join("")}
+      </div>
+    </div>`).join("")
+    +`<div id="tqResult" class="hidden"></div>
+     <button id="tqSubmit" class="btn btn-primary" type="button" style="width:100%;margin-top:4px;">Submit Quiz</button>`;
+  $("tqSubmit").addEventListener("click",()=>submitQuiz(lvl));
+}
+function submitQuiz(lvl){
+  let correctCount=0;
+  const answers=[];
+  lvl.quiz.forEach((q,qi)=>{
+    const sel=$$(`input[name="tq${qi}"]`, $("tlQuizWrap")).find(r=>r.checked);
+    const val=sel?parseInt(sel.value,10):-1;
+    answers.push(val);
+    if(val===q.correct) correctCount++;
+  });
+  lvl.quiz.forEach((q,qi)=>{
+    $$(`.tq-opt[data-qi="${qi}"]`, $("tlQuizWrap")).forEach(opt=>{
+      const oi=parseInt(opt.dataset.oi,10);
+      opt.classList.add("locked");
+      if(oi===q.correct) opt.classList.add("correct");
+      else if(oi===answers[qi]) opt.classList.add("wrong");
+    });
+  });
+  const pct=correctCount/lvl.quiz.length;
+  const passed=pct>=0.7;
+  const result=$("tqResult");
+  result.classList.remove("hidden","pass","fail");
+  result.classList.add(passed?"pass":"fail");
+  result.textContent=passed
+    ? `🎉 ${correctCount}/${lvl.quiz.length} — Passed!`
+    : `${correctCount}/${lvl.quiz.length} — not quite, give it another shot.`;
+  $("tqSubmit").remove();
+  if(passed){
+    const needsIrl=lvl.irlTask && !$("tlIrlCheck").checked;
+    const btn=document.createElement("button");
+    btn.className="btn btn-primary"; btn.type="button"; btn.style.cssText="width:100%;margin-top:10px;";
+    btn.textContent=needsIrl ? "Check the real-world task above first" : "✅ Complete Level";
+    btn.disabled=needsIrl;
+    btn.addEventListener("click",()=> completeLevel(lvl));
+    result.after(btn);
+    if(needsIrl){
+      $("tlIrlCheck").addEventListener("change", function onChk(){
+        if(this.checked){ btn.disabled=false; btn.textContent="✅ Complete Level"; this.removeEventListener("change", onChk); }
+      });
+    }
+  } else {
+    const retry=document.createElement("button");
+    retry.className="btn btn-ghost"; retry.type="button"; retry.style.cssText="width:100%;margin-top:10px;";
+    retry.textContent="↺ Retake Quiz";
+    retry.addEventListener("click",()=> renderQuiz(lvl));
+    result.after(retry);
+  }
+}
+function completeLevel(lvl){
+  const alreadyDone=!!training.completed[lvl.id];
+  training.completed[lvl.id]={ ts:Date.now() };
+  if(!alreadyDone) training.xp+=lvl.xp;
+  persistTraining();
+  closeModal("trainLevelModal");
+  showToast(alreadyDone ? `<b>${esc(lvl.title)}</b> re-confirmed!` : `+${lvl.xp} XP — <b>${esc(lvl.title)}</b> complete!`, "🎉");
+  renderTrainingPath();
+  if(!alreadyDone && typeof notifyManagerChange==="function") notifyManagerChange(`completed the "${lvl.title}" training level`);
+  if(trainingDoneCount()>=trainingTotalLevels() && !alreadyDone) finishTrainingCelebration();
+}
+function finishTrainingCelebration(){
+  openModal("trainGradModal");
+  if(db){
+    const node=push(ref(db,"feed"));
+    set(node,{ uid:me.uid, name:me.name, emoji:me.emoji, color:me.color,
+      text:"just completed Merchandiser Training and earned the 🌟 Certified Merchandiser badge!", kind:"post", ts:Date.now() }).catch(()=>{});
+  }
+}
+function initTraining(){
+  const startBtn=$("tlStartQuiz");
+  if(startBtn) startBtn.addEventListener("click",()=>{
+    const lvl=TRAINING_LEVELS[tlIdx]; if(!lvl || !lvl.quiz) return;
+    setVis(startBtn, false);
+    renderQuiz(lvl);
+  });
+  const doneBtn=$("tlComplete");
+  if(doneBtn) doneBtn.addEventListener("click",()=>{
+    const lvl=TRAINING_LEVELS[tlIdx]; if(!lvl) return;
+    if(lvl.irlTask && !$("tlIrlCheck").checked){ alert("Check off the real-world task first — go do it with your supervisor!"); return; }
+    completeLevel(lvl);
+  });
 }
 
 /* ---------- Display settings: theme + text size ---------- */
